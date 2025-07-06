@@ -1,0 +1,19 @@
+{
+  "name": "speech-generator",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "generate": "node srс/scripts/generate.mjs",
+    "d": "node srс/scripts/generate.mjs --dialog",
+    "m": "node srс/scripts/generate.mjs --monologue",
+    "reset-meta": "node srс/scripts/reset-meta.mjs"
+  },
+  "dependencies": {
+    "@google/genai": "^0.6.0",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.9",
+    "node-fetch": "^3.3.2",
+    "p-limit": "^6.2.0",
+    "wav": "^1.0.0"
+  }
+}
