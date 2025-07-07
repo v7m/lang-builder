@@ -1,18 +1,62 @@
+You are an assistant that outputs structured JSON data only.
+
 Create a realistic dialogue in German at A2 level between two people, strictly based on the list of words provided below (each line contains one word and its forms).
 
+Return the result **only** as a valid JSON object with the following fields:
+- "dialog": an array where each item is an object with:
+  - "id": the line number (from 1 to <%= number_of_lines %>),
+  - "speaker": either "Speaker 1" or "Speaker 2",
+  - "text": the content of the line (without speaker prefix).
+- "word_forms_usage": an object where:
+  - keys are all word forms from the input list (each form separately)
+  - values are numbers indicating how many times each form was used in the dialogue
+
 Requirements:
-- The dialogue should consist of 100 lines (50 for each speaker)
-- The first line should begin with: "Speaker 1: Dialog №<%= speech_number %>. [Title of the topic]"
-- Then alternate lines between Speaker 1 (female) and Speaker 2 (male). (Do not mention "female" or "male")
-- The last line must be by Speaker 2.
-- The topics should be different each time and appropriate for A2 level.
-- The lines should be diverse, and as long as possible. For example, include regular dialogue, long stories told by one of the participants, with multiple sentences, etc.
-- This should not be a simple question-answer exchange.
-- Use all forms of all words from the list. For example, from the line "sprechen; spricht; sprach; hat gesprochen", all four forms must be used as separate words.
-- Distribute word forms evenly throughout the text. Repetitions are allowed but aim to cover the list evenly.
-- The dialogue must be entirely in German.
-- No formatting: no bold, italics, or other styling.
-- Carefully control the usage of words.
+- The dialogue must consist of **exactly <%= number_of_lines %> lines**.
+- If your result has fewer or more than <%= number_of_lines %> lines, it is invalid.
+- The first line must be: "Dialog №<%= speech_number %>. [Title of the topic]" — as text in the `"text"` field of the first object.
+- Alternate between speakers. Speaker 1 starts first, and Speaker 2 ends last.
+- Use diverse sentence structures and longer statements when possible.
+- This is **not** a simple Q&A dialogue — include stories, longer responses, elaborations, etc.
+- The topic must be appropriate for A2 level and unique each time.
+
+### Dialogue Structure Rules:
+- At least **10–15 lines** must be **mini-stories** or detailed monologues by either speaker.
+- A mini-story should consist of **3 to 6 full, connected sentences**, describing:
+  - past events,
+  - personal experiences,
+  - trips or dreams,
+  - problems or memorable situations.
+- These mini-stories must be naturally integrated and **spread throughout** the dialogue — beginning, middle, and end.
+- Avoid repetitive or disconnected short question-answer lines. The dialogue should feel like a natural, rich conversation.
+
+### Vocabulary Usage:
+- Use **all forms** of **all** words from the list. For example, for the line "sprechen; spricht; sprach; hat gesprochen", use **each** form at least once.
+- Distribute word forms **evenly** across the entire dialogue — don’t group them all at the beginning or end.
+- Reusing word forms in different contexts is encouraged for better practice.
+
+- The dialogue must be entirely in **German**.
+- Do not include any formatting (no bold, italics, line breaks, etc.).
+- Do not include any explanation or non-JSON text in the output.
+
+### Output Format:
+Return a valid JSON object like this:
+
+{
+  "dialog": [
+    {"id": 1, "speaker": "Speaker 1", "text": "Dialog №123. Im Stadtteil"},
+    {"id": 2, "speaker": "Speaker 2", "text": "Hallo! Wie findest du unseren Stadtteil?"},
+    ...
+  ],
+  "word_forms_usage": {
+    "Stadtteil": 2,
+    "Stadtteile": 1,
+    "sprechen": 1,
+    "spricht": 2,
+    "sprach": 1,
+    "hat gesprochen": 1
+  }
+}
 
 Words list:
-<%= word_list %> 
+<%= word_list %>

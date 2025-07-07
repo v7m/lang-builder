@@ -6,7 +6,7 @@ export function getOutputFilePath(outputDir, number, date = new Date()) {
   const year = date.getFullYear();
 
   const dateString = `${day}.${month}.${year}`;
-  const fileName = `Speech №${number} - ${dateString}.wav`;
+  const fileName = `speech_${number}_${dateString}.wav`;
 
   return path.join(outputDir, fileName);
 }

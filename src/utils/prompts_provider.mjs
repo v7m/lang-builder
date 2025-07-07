@@ -20,7 +20,7 @@ export function getSystemPrompt() {
   return fs.readFileSync(filePath, 'utf8');
 }
 
-export function getDialogPrompt() {
+export function getDialogPrompt(numberOfLines = 10) {
   const speechNumber = getNextCounter();
   const wordsList = getWordsList();
   const templatePath = path.join(PROMPTS_DIR, 'dialog_prompt_template.ejs');
@@ -28,7 +28,8 @@ export function getDialogPrompt() {
 
   return ejs.render(templateContent, {
     speech_number: speechNumber,
-    word_list: wordsList
+    word_list: wordsList,
+    number_of_lines: numberOfLines
   });
 }
 

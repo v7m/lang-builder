@@ -9,7 +9,7 @@ const GEMINI_MODEL = "gemini-2.5-flash-preview-tts";
 const GEMINI_FEMALE_VOICE = "Kore";
 const GEMINI_MALE_VOICE = "Puck";
 
-export async function generateSpeech(text, speechInstructions) {
+export async function generateGeminiResponse(text, speechInstructions) {
   const textWithInstruction = `${speechInstructions.trim()}\n${text}`;
   
   const requestConfig = {
