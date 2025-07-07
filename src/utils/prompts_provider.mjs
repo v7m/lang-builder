@@ -15,37 +15,28 @@ export function getSpeechInstructions() {
   return fs.readFileSync(filePath, 'utf8');
 }
 
-export function getSystemPrompt() {
-  const filePath = path.join(PROMPTS_DIR, 'system_prompt.txt');
-  return fs.readFileSync(filePath, 'utf8');
-}
-
-export function getDialogPrompt(numberOfLines = 10) {
+export function getDialogPrompt(numberOfLines = 100) {
   const speechNumber = getNextCounter();
-  const wordsList = getWordsList();
   const templatePath = path.join(PROMPTS_DIR, 'dialog_prompt_template.ejs');
   const templateContent = fs.readFileSync(templatePath, 'utf8');
 
   return ejs.render(templateContent, {
     speech_number: speechNumber,
-    word_list: wordsList,
     number_of_lines: numberOfLines
   });
 }
 
 export function getMonologuePrompt() {
   const speechNumber = getNextCounter();
-  const wordsList = getWordsList();
   const templatePath = path.join(PROMPTS_DIR, 'monologue_prompt_template.ejs');
   const templateContent = fs.readFileSync(templatePath, 'utf8');
 
   return ejs.render(templateContent, {
     speech_number: speechNumber,
-    word_list: wordsList
   });
 }
 
-function getWordsList() {
+export function getWordsList() {
   const filePath = path.join(INPUT_DIR, 'words_list.txt');
   return fs.readFileSync(filePath, 'utf8');
 }

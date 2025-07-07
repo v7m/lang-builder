@@ -36,12 +36,24 @@ export async function generateOpenAIResponse({
 
   const data = await response.json();
 
-  if (data.choices[0].message.tool_calls) {
-    const toolCall = data.choices[0].message.tool_calls[0];
-    const textData = JSON.parse(toolCall.function.arguments);
-
-    return textData;
+  if (data.error) {
+    console.error("OpenAI API error:", data.error);
+    throw new Error(`OpenAI API Error: ${data.error.message}`);
   }
 
-  return data.choices[0].message.content;
+  if (!data.choices || data.choices.length === 0) {
+    throw new Error("No choices returned from OpenAI API");
+  }
+
+  const content = data.choices[0].message.content;
+
+  if (typeof content === 'object') {
+    return content;
+  }
+
+  try {
+    return JSON.parse(content);
+  } catch {
+    return content;
+  }
 }
