@@ -1,12 +1,13 @@
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
+import process from 'process';
 
 dotenv.config();
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const OPENAI_MODEL = "gpt-4o";
 
-export async function generateOpenAIResponse({
+async function chatCompletionRequest({
   model = OPENAI_MODEL,
   systemPrompt,
   userPrompt,
@@ -45,9 +46,31 @@ export async function generateOpenAIResponse({
     throw new Error("No choices returned from OpenAI API");
   }
 
-  const content = data.choices[0].message.content;
+  const choice = data.choices[0];
+  const message = choice.message;
 
-  if (typeof content === 'object') {
+  // Case 1: function call (tool_calls)
+  if (choice.finish_reason === "tool_calls" && message.tool_calls?.length) {
+    try {
+      const rawArgs = message.tool_calls[0].function.arguments;
+      const parsed = JSON.parse(rawArgs);
+
+      return parsed;
+    } catch (err) {
+      console.error("Failed to parse tool call arguments:", message.tool_calls[0].function.arguments);
+
+      throw err;
+    }
+  }
+
+  // Case 2: regular text response
+  const content = message.content;
+
+  if (!content) {
+    throw new Error("No content returned from OpenAI.");
+  }
+
+  if (typeof content === "object") {
     return content;
   }
 
@@ -57,3 +80,7 @@ export async function generateOpenAIResponse({
     return content;
   }
 }
+
+export const openaiClient = {
+  chatCompletionRequest
+};

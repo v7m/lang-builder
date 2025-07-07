@@ -1,4 +1,4 @@
-export const DIALOG_FUNCTION_SCHEMA = {
+export const dialogSchema = {
   type: "function",
   function: {
     name: "generate_dialog",

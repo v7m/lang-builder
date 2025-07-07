@@ -1,112 +1,32 @@
-import { fileURLToPath } from 'url';
-import pLimit from 'p-limit';
-import path from 'path';
-import fs from 'fs/promises';
-
-import { generateOpenAIResponse } from './ai-providers/openai/openaiClient.mjs';
-import { generateGeminiResponse } from './ai-providers/gemini/geminiClient.mjs';
-import { DIALOG_FUNCTION_SCHEMA } from './ai-providers/openai/function_schemas/dialog.mjs';
+import { textGenerator } from './services/textGenerator.mjs';
+import { speechGenerator } from './services/speechGenerator.mjs';
+import { fileManager } from './services/fileManager.mjs';
 import { convertDialogDataToChunks } from './utils/convert_dialog_data_to_chunks.mjs';
-import { saveCombinedWaveFile } from './utils/save_wav_file.mjs';
-import { getOutputFilePath } from './utils/get_output_file_path.mjs';
-import { getNextCounter, updateGenerationMeta } from './utils/generation_meta.mjs';
-import { 
-  getDialogPrompt, 
-  getMonologuePrompt,
-  getSpeechInstructions,
-  getWordsList
-} from './utils/prompts_provider.mjs';
+import { dictionaryService } from './services/dictionaryService.mjs';
+import * as promptsProvider from './utils/prompts_provider.mjs';
 
 const TEXT_CHUNK_LENGTH_LIMIT = 1500;
 const DIALOG_LINES_COUNT = 100;
-const SPEECH_REQUESTS_LIMIT = pLimit(3);
-const OUTPUT_PATH = path.join(path.dirname(fileURLToPath(import.meta.url)), '../output');
 
 export async function generateDialogTextAndSpeech() {
-  const textData = await generateDialogText();
-  const textChunks = convertDialogDataToChunks(textData, TEXT_CHUNK_LENGTH_LIMIT);
-  const audioData = await generateSpeech(textChunks);
+  const inputWords = promptsProvider.getInputWords();
+  const textData = await textGenerator.generateDialog(inputWords, DIALOG_LINES_COUNT);
 
-  await saveTextToFile(textChunks, 'dialog');
-  await saveSpeechToFile(audioData);
+  const textChunks = convertDialogDataToChunks(textData, TEXT_CHUNK_LENGTH_LIMIT);
+  const audioData = await speechGenerator.generateMultiSpeakerSpeechFromChunks(textChunks);
+
+  await fileManager.saveTextChunksToFile(textChunks, 'dialog');
+  await fileManager.saveAudioToFile(audioData);
+}
+
+export async function generateWordDefinitions() {
+  const inputWords = promptsProvider.getInputWords();
+  console.log('inputWords', inputWords);
+  const wordDefinitions = await dictionaryService.generateWordDefinitions(inputWords);
+
+  await fileManager.saveWordDefinitionsToCSVFile(wordDefinitions);
 }
 
 export async function generateMonologueTextAndSpeech() {
   throw new Error('Not implemented yet');
-}
-
-async function generateDialogText() {
-  console.log('📤 Generating dialog text from AI started');
-  
-  const systemPrompt = getDialogPrompt(DIALOG_LINES_COUNT)
-  const userPrompt = getWordsList();
-
-  const textData = await generateOpenAIResponse({
-    systemPrompt,
-    userPrompt,
-    tools: [DIALOG_FUNCTION_SCHEMA],
-    tool_choice: "auto",
-    max_tokens: 6000
-  })
-
-  logGeneratedText(textData);
-
-  return textData;
-}
-
-async function generateSpeech(textChunks) {
-  console.log('\n🎙️ Generating speech from AI started');
-
-  const speechInstructions = getSpeechInstructions();
-
-  const bufferPromises = textChunks.map((chunk, index) =>
-    SPEECH_REQUESTS_LIMIT(() => {
-      console.log(`\n🎙️ Generating speech for text chunk #${index + 1}...`);
-      console.log(`Text chunk length: ${chunk.length}`);
-      console.log(`${chunk} \n`);
-
-      return generateGeminiResponse(chunk, speechInstructions);
-    })
-  );
-  
-  const audioData = await Promise.all(bufferPromises);
-
-  console.log('\n🎙️ Speech generated');
-  return audioData;
-}
-
-async function saveSpeechToFile(audioData) {
-  const nextCounter = getNextCounter();
-  const outputFilePath = getOutputFilePath(OUTPUT_PATH, nextCounter);
-  const relativePath = path.relative(process.cwd(), outputFilePath).replace(/^output\//, '');
-  
-  console.log(`\n🎙️ Saving speech audio file to "output/${relativePath}"`);
-
-  await saveCombinedWaveFile(outputFilePath, audioData);
-  updateGenerationMeta();
-
-  console.log(`✅ Speech audio file saved to "output/${relativePath}"`);
-
-  return outputFilePath;
-}
-
-function logGeneratedText(textData) {
-  console.log('\n📝 Text data generated:\n');
-  console.log(textData);
-  console.log('\nDialog lines count:\n');
-  console.log(textData.dialog.length);
-}
-
-async function saveTextToFile(textChunks, type) {
-  const fullText = textChunks.join('\n').trim();
-  const nextCounter = getNextCounter();
-  const fileName = `Text_${nextCounter}_${type}.txt`;
-  const filePath = path.join(OUTPUT_PATH, fileName);
-  const relativePath = path.relative(process.cwd(), filePath).replace(/^output\//, '');
-
-  console.log(`\n📝 Saving text to "output/${relativePath}"`);
-  
-  await fs.writeFile(filePath, fullText, 'utf-8');
-  
-  console.log(`✅ Text saved to "output/${relativePath}"`);
 }

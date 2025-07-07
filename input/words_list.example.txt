@@ -1,20 +1,9 @@
-der Stadtteil; Stadtteile	1
-zunächst	2
-der Gutschein; Gutscheine	3
-das Produkt; Produkte	4
-die Studiengebühr; Studiengebühren	5
-die Kreditkarte; Kreditkarten	6
-das Team; Teams	7
-das Tor; Tore	8
-zwinkern	9
-lästig	10
-der Wochentag; Wochentage	11
-die Rezeption; Rezeptionen	12
-der Schinken; Schinken	13
-die Küste; Küsten	14
-der Ofen; Öfen	15
-der Herd; Herde	16
-der Mais; Maise	17
-die Beere; Beeren	18
-die Jahreszeit; Jahreszeiten	19
-das Ostern; Ostern	20
+Konsequenz
+Prellungen
+wehgetan
+fremd
+jugendlich
+gleichen
+zurzeit
+kriegen
+erste

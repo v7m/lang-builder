@@ -6,6 +6,7 @@
     "generate": "node src/scripts/generate.mjs",
     "d": "node src/scripts/generate.mjs --dialog",
     "m": "node src/scripts/generate.mjs --monologue",
+    "w": "node src/scripts/generate.mjs --words",
     "reset-meta": "node src/scripts/reset-meta.mjs"
   },
   "dependencies": {
@@ -15,5 +16,10 @@
     "node-fetch": "^3.3.2",
     "p-limit": "^6.2.0",
     "wav": "^1.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.30.1",
+    "eslint": "^9.30.1",
+    "globals": "^16.3.0"
   }
 }
