@@ -1,12 +1,10 @@
 {
-  "name": "speech-generator",
+  "name": "lang-builder",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "generate": "node src/scripts/generate.mjs",
-    "d": "node src/scripts/generate.mjs --dialog",
-    "m": "node src/scripts/generate.mjs --monologue",
-    "w": "node src/scripts/generate.mjs --words",
+    "all": "node src/scripts/generate.mjs --all",
     "reset-meta": "node src/scripts/reset-meta.mjs"
   },
   "dependencies": {

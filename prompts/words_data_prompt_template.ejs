@@ -9,90 +9,36 @@ Do NOT skip any word.
 {
   "words_data": [
     {
-      "word": "string",                        // The original word
-
+      "id": number,                                 // The index of the word in the input array (starting from 0)
+      "word": "string",                             // The original word
       "part_of_speech": "noun" | "verb" | "adjective" | "adverb" | "other",
-
       "regularity": "regular" | "irregular" | "",   // "" for nouns, adverbs, unknown — use empty string ONLY
-
-      "forms": "string",                      // Verbs: "tun; tut; tat; hat getan" - all 4 forms
-                                              // Nouns: "der Mond; Monde" - first and last form form only
-                                              // Adjectives: "groß; größer; größte; größten" - all forms
-                                              // Adverbs: "herein" - all forms
-                                              // If unknown: the word itself - just the word itself
-
-      "translation": ["string"],              // Up to 7 Russian translations, or [] if not found
-
-      "example": "string"                     // German sentence with word replaced by "_____", or empty string if no example found
+      "forms": "string",                            // Verbs: "tun; tut; tat; hat getan" - all 4 forms
+                                                    // Nouns: "der Mond; Monde" - first and last form form only
+                                                    // Adjectives: all available forms
+                                                    // Adverbs: all available forms
+                                                    // If unknown: the word itself - just the word itself
+      "translation": ["string"],                    // Up to 7 Russian translations, or [] if not found
+      "example": "string"                           // German sentence with word replaced by "_____", or empty string if no example found
     }
     // ... repeated for each word
   ],
-  "count": number                              // Total number of items in "words_data"
+  "count": number                                   // Total number of items in "words_data"
 }
 
 ### Rules:
 
 1. Process ALL input words - the output array MUST have the same length as the input array
 2. For each word find the information about definition, forms, translations, and examples on the following sources:
-  - Try https://www.verbformen.com/ first (example for word "tun": https://www.verbformen.com/conjugation/?w=tun)
+  - Try https://www.verbformen.com/ first (example for word "tun": https://www.verbformen.com/?w=tun)
   - If not found or incomplete data, try https://www.woerter.net/ (example for word "Mond": https://www.woerter.net/?w=Mond)
   - If not found or incomplete data, try https://dict.leo.org/ (example for word "tun": https://dict.leo.org/%D0%BD%D0%B5%D0%BC%D0%B5%D1%86%D0%BA%D0%B8%D0%B9-%D1%80%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9/tun)
   - If still incomplete, return what you found and leave other fields empty.
-3. In `forms`, copy the values exactly as written on the sources
-4. Replace the word in examples with exactly **5 underscores**: `"_____"`
-5. Return a **valid JSON array only**. Do not include any explanation or extra text.
-6. If a field cannot be found, leave it as empty string "" (for strings), empty array [] (for translations), or use the word itself in forms.
-7. At the end of generation, internally verify that the number of returned objects matches the number of input words.
-8. Your output array MUST have exactly the same number of items as the input "words" array.
-9. Do NOT use "n/a" anywhere. If "regularity" is not applicable, use empty string "".
-
-### Example Input
-
-{
-  "words": ["Mond", "tun", "jugendlich", "herein", "unbekannt"]
-}
-
-### Example output
-
-[
-  {
-    "word": "Mond",
-    "part_of_speech": "noun",
-    "regularity": "",
-    "forms": "der Mond; Monde",
-    "translation": ["луна", "спутник", "месяц", "полумесяц", "естественный спутник"],
-    "example": "Der _____ scheint hell."
-  },
-  {
-    "word": "tun",
-    "part_of_speech": "verb",
-    "regularity": "irregular",
-    "forms": "tun; tut; tat; hat getan",
-    "translation": ["делать", "выполнять", "исполнять", "производить", "поступать"],
-    "example": "Eigene Bewegung _____ gut."
-  },
-  {
-    "word": "jugendlich",
-    "part_of_speech": "adjective",
-    "regularity": "",
-    "forms": "jugendlich; jugendlich; jugendlicher; am jugendlichsten",
-    "translation": ["молодёжный; юношеский; подростковый"],
-    "example": "Ich bewundere ihr _____ Temperament."
-  },
-  {
-    "word": "herein",
-    "part_of_speech": "adverb",
-    "regularity": "",
-    "forms": "herein",
-    "translation": ["сюда; внутрь"],
-    "example": " Hier darf niemand  _____. "
-  },
-  {
-    "word": "unbekannt",
-    "part_of_speech": "other",
-    "regularity": "",
-    "forms": "unbekannt",
-    "translation": [],
-    "example": ""
-  }
-]
+3. In `forms`, copy the values exactly as written on the sources.
+4. Some forms may be identical, show them all.
+5. Replace the word in examples with exactly **5 underscores**: `"_____"`
+6. Return a **valid JSON array only**. Do not include any explanation or extra text.
+7. If a field cannot be found, leave it as empty string "" (for strings), empty array [] (for translations), or use the word itself in forms.
+8. At the end of generation, internally verify that the number of returned objects matches the number of input words.
+9. Your output array MUST have exactly the same number of items as the input "words" array.
+10. Do NOT use "n/a" anywhere. If "regularity" is not applicable, use empty string "".

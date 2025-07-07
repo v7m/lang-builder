@@ -15,13 +15,13 @@ async function generateMultiSpeakerSpeechFromChunks(textChunks) {
     SPEECH_REQUESTS_LIMIT(() => {
       console.log(`\n🎙️ Generating speech for text chunk #${index + 1}...`);
       console.log(`Text chunk length: ${chunk.length}`);
-      console.log(`${chunk} \n`);
+      // console.log(`${chunk} \n`);
 
       const textWithInstruction = `${speechInstructions.trim()}\n${chunk}`;
 
       return geminiClient.textToSpeechRequest({
         prompt: textWithInstruction,
-        generationConfig: multiSpeakerConfig()
+        generationConfig: multiSpeakerConfig
       });
     })
   );
@@ -32,7 +32,6 @@ async function generateMultiSpeakerSpeechFromChunks(textChunks) {
 
   return audioData;
 }
-
 export const speechGenerator = {
   generateMultiSpeakerSpeechFromChunks
 };

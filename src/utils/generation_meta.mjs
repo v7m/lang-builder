@@ -20,12 +20,12 @@ function saveMeta(meta) {
   fs.writeFileSync(GENERATION_META_PATH, JSON.stringify(meta, null, 2));
 }
 
-export function getNextCounter() {
+function getNextCounter() {
   const meta = loadMeta();
   return (meta.counter ?? 0) + 1;
 }
 
-export function updateGenerationMeta() {
+function updateGenerationMeta() {
   const meta = loadMeta();
   const next = (meta.counter ?? 0) + 1;
 
@@ -37,6 +37,12 @@ export function updateGenerationMeta() {
   return next;
 }
 
-export function resetGenerationMeta() {
+function resetGenerationMeta() {
   saveMeta({ counter: 0, lastGenerated: null });
 }
+
+export const generationMeta = {
+  getNextCounter,
+  updateGenerationMeta,
+  resetGenerationMeta
+};

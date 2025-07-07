@@ -1,4 +1,6 @@
 import dotenv from 'dotenv';
+import { Buffer } from 'buffer';
+import process from 'process';
 
 dotenv.config();
 

@@ -2,10 +2,10 @@ const GEMINI_FEMALE_VOICE = "Kore";
 const GEMINI_MALE_VOICE = "Puck";
 
 export const multiSpeakerConfig = {
-  generationConfig: {
-    responseModalities: ['AUDIO'],
-    speechConfig: {
-      multiSpeakerVoiceConfig: [
+  responseModalities: ["AUDIO"],
+  speechConfig: {
+    multiSpeakerVoiceConfig: {
+      speakerVoiceConfigs: [
         {
           speaker: "Female",
           voiceConfig: {
@@ -24,5 +24,5 @@ export const multiSpeakerConfig = {
         }
       ]
     }
-  },
+  }
 };

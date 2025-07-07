@@ -18,7 +18,8 @@ async function generateWordDefinitions(words) {
     max_tokens: MAX_TOKENS
   });
 
-  console.log('\n📝 Word definitions generated:\n', wordDefinitions);
+  console.log('\n📝 Word definitions generated:\n');
+  console.log('Word definitions count:', wordDefinitions.words_data.length);
   
   return wordDefinitions;
 }

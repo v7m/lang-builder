@@ -6,24 +6,30 @@ export const wordsDataSchema = {
     parameters: {
       type: "object",
       properties: {
+        count: {
+          type: "number",
+          description: "Total number of processed words"
+        },
         words_data: {
           type: "array",
           description: "Linguistic information for each word",
           items: {
             type: "object",
             properties: {
+              id: {
+                type: "number",
+                description: "The index of the word in the input array (starting from 0)"
+              },
               word: {
                 type: "string",
                 description: "The German word"
               },
               part_of_speech: {
                 type: "string",
-                enum: ["noun", "verb", "adjective", "other"],
                 description: "Part of speech"
               },
               regularity: {
                 type: "string",
-                enum: ["regular", "irregular", "n/a"],
                 description: "Regularity (only meaningful for verbs)"
               },
               forms: {
@@ -34,8 +40,6 @@ export const wordsDataSchema = {
                 type: "array",
                 description: "Up to 7 Russian translations",
                 items: { type: "string" },
-                minItems: 1,
-                maxItems: 7
               },
               example: {
                 type: "string",
@@ -43,6 +47,7 @@ export const wordsDataSchema = {
               }
             },
             required: [
+              "id",
               "word",
               "part_of_speech",
               "regularity",
@@ -53,7 +58,7 @@ export const wordsDataSchema = {
           }
         }
       },
-      required: ["words_data"]
+      required: ["count", "words_data"]
     }
   }
 };

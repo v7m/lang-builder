@@ -1,3 +1,3 @@
-import { resetGenerationMeta } from '../utils/generation_meta.mjs';
+import { generationMeta } from '../utils/generation_meta.mjs';
 
-resetGenerationMeta();
+generationMeta.resetGenerationMeta();

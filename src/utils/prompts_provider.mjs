@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import ejs from 'ejs';
-import { getNextCounter } from './generation_meta.mjs';
+import { generationMeta } from './generation_meta.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +17,7 @@ function getSpeechInstructions() {
 }
 
 function getDialogPrompt(numberOfLines = 100) {
-  const speechNumber = getNextCounter();
+  const speechNumber = generationMeta.getNextCounter();
   const promptTemplatePath = path.join(PROMPTS_DIR, 'dialog_prompt_template.ejs');
   const promptTemplateContent = fs.readFileSync(promptTemplatePath, 'utf8');
 
@@ -28,7 +28,7 @@ function getDialogPrompt(numberOfLines = 100) {
 }
 
 function getMonologuePrompt() {
-  const speechNumber = getNextCounter();
+  const speechNumber = generationMeta.getNextCounter();
   const promptTemplatePath = path.join(PROMPTS_DIR, 'monologue_prompt_template.ejs');
   const promptTemplateContent = fs.readFileSync(promptTemplatePath, 'utf8');
 
