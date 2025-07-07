@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
-import process from 'process';
+import { ChatCompletionOptions, OpenAIResponse } from '../../types';
 
 dotenv.config();
 
@@ -15,27 +15,31 @@ async function chatCompletionRequest({
   temperature = 0.7,
   tools = undefined,
   tool_choice = undefined
-}) {
+}: ChatCompletionOptions) {
+  const requestBody = {
+    model,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ],
+    temperature,
+    max_tokens,
+    tools,
+    tool_choice
+  };
+
+  const headers = {
+    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+    'Content-Type': 'application/json'
+  };
+
   const response = await fetch(OPENAI_API_URL, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ],
-      temperature,
-      max_tokens,
-      tools,
-      tool_choice
-    })
+    headers,
+    body: JSON.stringify(requestBody)
   });
 
-  const data = await response.json();
+  const data = await response.json() as OpenAIResponse;
 
   if (data.error) {
     console.error("OpenAI API error:", data.error);
@@ -53,12 +57,9 @@ async function chatCompletionRequest({
   if (choice.finish_reason === "tool_calls" && message.tool_calls?.length) {
     try {
       const rawArgs = message.tool_calls[0].function.arguments;
-      const parsed = JSON.parse(rawArgs);
-
-      return parsed;
+      return JSON.parse(rawArgs);
     } catch (err) {
       console.error("Failed to parse tool call arguments:", message.tool_calls[0].function.arguments);
-
       throw err;
     }
   }

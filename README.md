@@ -36,7 +36,7 @@ This multi-modal approach combines all outputs into a complete learning package:
 1. Clone the repository:
    ```bash
    git clone [repository-url]
-   cd speech-generator
+   cd lang-builder
    ```
 
 2. Install dependencies:
@@ -87,6 +87,7 @@ lang-builder/
     │   └── openai/      # OpenAI API integration
     ├── services/        # Core services
     ├── scripts/         # CLI scripts
+    ├── types/           # TypeScript type definitions
     └── utils/           # Helper utilities
 ```
 
@@ -113,6 +114,25 @@ lang-builder/
   - Anki-ready CSV format
   - Organized by generation sessions
   - All materials linked by generation number
+
+## Development
+
+The project is written in TypeScript and uses modern ES modules. To start development:
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Build the project:
+   ```bash
+   npm run build
+   ```
+
+3. Run in development mode:
+   ```bash
+   npm run dev
+   ```
 
 ## Contributing
 

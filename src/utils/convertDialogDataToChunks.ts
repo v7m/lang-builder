@@ -1,10 +1,12 @@
+import { DialogData } from '../types';
+
 // Convert dialog data object into plain text chunks (~maxLength chars),
 // each chunk ends with Speaker 2 if possible
-export function convertDialogDataToChunks(dialogData, maxLength = 2000) {
-  const chunks = [];
+export function convertDialogDataToChunks(dialogData: DialogData, maxLength: number = 2000): string[] {
+  const chunks: string[] = [];
   let currentPart = '';
   let lastSpeaker = '';
-  let buffer = [];
+  let buffer: string[] = [];
 
   for (let i = 0; i < dialogData.dialog.length; i++) {
     const lineObj = dialogData.dialog[i];

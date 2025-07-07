@@ -2,17 +2,25 @@ import dotenv from 'dotenv';
 import { Buffer } from 'buffer';
 import process from 'process';
 
+import { MultiSpeakerConfig } from './configs/multiSpeakerConfig';
+
 dotenv.config();
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent';
 const GEMINI_MODEL = "gemini-2.5-flash-preview-tts";
 
+interface TextToSpeechRequest {
+  model?: string;
+  prompt: string;
+  generationConfig?: MultiSpeakerConfig;
+}
+
 async function textToSpeechRequest({
   model = GEMINI_MODEL,
   prompt,
   generationConfig = undefined
-}) {
+}: TextToSpeechRequest): Promise<Buffer> {
   const requestConfig = {
     model: model,
     contents: [{

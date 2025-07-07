@@ -1,10 +1,20 @@
 import wav from 'wav';
 
-export async function saveCombinedWaveFile(outputPath, buffers, {
-  channels = 1,
-  sampleRate = 24000,
-  bitDepth = 16,
-} = {}) {
+interface WavConfig {
+  channels?: number;
+  sampleRate?: number;
+  bitDepth?: number;
+}
+
+export async function saveCombinedWaveFile(
+  outputPath: string,
+  buffers: Buffer[],
+  {
+    channels = 1,
+    sampleRate = 24000,
+    bitDepth = 16,
+  }: WavConfig = {}
+): Promise<void> {
   return new Promise((resolve, reject) => {
     const writer = new wav.FileWriter(outputPath, {
       channels,

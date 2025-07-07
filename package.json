@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "generate": "node src/scripts/generate.mjs",
-    "all": "node src/scripts/generate.mjs --all",
-    "reset-meta": "node src/scripts/reset-meta.mjs"
+    "build": "tsc",
+    "start": "tsx src/scripts/generate.ts",
+    "generate": "tsx src/scripts/generate.ts",
+    "all": "tsx src/scripts/generate.ts --all",
+    "reset-meta": "tsx src/scripts/reset-meta.ts",
+    "dev": "tsx watch src/scripts/generate.ts"
   },
   "dependencies": {
     "@google/genai": "^0.6.0",
@@ -17,7 +20,16 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
+    "@types/ejs": "^3.1.5",
+    "@types/node": "^20.11.30",
+    "@types/wav": "^1.0.4",
+    "@typescript-eslint/eslint-plugin": "^8.36.0",
+    "@typescript-eslint/parser": "^8.36.0",
     "eslint": "^9.30.1",
-    "globals": "^16.3.0"
+    "globals": "^16.3.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.7.1",
+    "typescript": "^5.4.3",
+    "typescript-eslint": "^8.36.0"
   }
 }

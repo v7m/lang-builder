@@ -3,62 +3,66 @@ import fs from 'fs/promises';
 import process from 'process';
 import { fileURLToPath } from 'url';
 import { mkdir } from 'fs/promises';
+import { WordData } from '../types';
 
-import { saveCombinedWaveFile } from '../utils/save_wav_file.mjs';
-import { generationMeta } from '../utils/generation_meta.mjs';
+import { saveCombinedWaveFile } from '../utils/saveWavFile';
+import { generationMeta } from '../utils/generationMeta';
 
 const OUTPUT_PATH = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../output');
 
 class FileManager {
+  private currentGenerationNumber: number | null;
+  private currentGenerationDir: string | null;
+
   constructor() {
     this.currentGenerationNumber = null;
     this.currentGenerationDir = null;
   }
 
-  async initializeGeneration() {
-    this.currentGenerationNumber = generationMeta.getNextCounter();
+  async initializeGeneration(): Promise<void> {
+    this.currentGenerationNumber = await generationMeta.incrementGenerationCounter();
     const dateString = this._getCurrentDateString();
     this.currentGenerationDir = path.join(OUTPUT_PATH, `generation_${this.currentGenerationNumber}_${dateString}`);
     await mkdir(this.currentGenerationDir, { recursive: true });
   }
 
-  async saveTextChunksToFile(textChunks, type) {
+  async saveTextChunksToFile(textChunks: string[], type: string): Promise<void> {
     if (!this.currentGenerationNumber) {
       throw new Error('Generation not started. Call initializeGeneration() first.');
     }
 
     const { filePath, relativeFilePath } = this._getOutputFilePath(type + '_text', 'txt');
 
-    console.log(`\n📝 Saving text to "output/${relativeFilePath}"`);
+    console.log(`    💾 Saving text to "${relativeFilePath}"`);
 
     const fullText = textChunks.join('\n').trim();
     await fs.writeFile(filePath, fullText, 'utf-8');
 
-    console.log(`✅ Text saved to "output/${relativeFilePath}"`);
+    console.log(`    ✅ Text saved to "output/${relativeFilePath}"`);
   }
 
-  async saveAudioToFile(audioData) {
+  async saveAudioToFile(audioData: Buffer[]): Promise<void> {
     if (!this.currentGenerationNumber) {
       throw new Error('Generation not started. Call initializeGeneration() first.');
     }
 
     const { filePath, relativeFilePath } = this._getOutputFilePath('speech', 'wav');
 
-    console.log(`\n🎵 Saving audio to "output/${relativeFilePath}"`);
+    console.log(`    💾 Saving audio to "output/${relativeFilePath}"`);
 
     await saveCombinedWaveFile(filePath, audioData);
 
-    console.log(`✅ Audio saved to "output/${relativeFilePath}"`);
+    console.log(`    ✅ Audio saved to "output/${relativeFilePath}"`);
   }
 
-  async saveWordDefinitionsToCSVFile(wordsData) {
+  async saveWordDefinitionsToCSVFile(wordsData: { words_data: WordData[] }): Promise<void> {
     if (!this.currentGenerationNumber) {
       throw new Error('Generation not started. Call initializeGeneration() first.');
     }
 
     const { filePath, relativeFilePath } = this._getOutputFilePath('word_definitions', 'csv');
 
-    console.log(`\n📝 Saving word definitions table to "output/${relativeFilePath}"`);
+    console.log(`    💾 Saving word definitions to "output/${relativeFilePath}"`);
 
     const csvHeader = [
       'ID',
@@ -86,10 +90,10 @@ class FileManager {
 
     await fs.writeFile(filePath, csvHeader + csvRows);
 
-    console.log(`✅ Word definitions table saved to "output/${relativeFilePath}"`);
+    console.log(`    ✅ Word definitions saved to "output/${relativeFilePath}"`);
   }
 
-  _getOutputFilePath(prefix, extension) {
+  private _getOutputFilePath(prefix: string, extension: string): { filePath: string; relativeFilePath: string } {
     if (!this.currentGenerationDir) {
       throw new Error('Generation directory not set. Call initializeGeneration() first.');
     }
@@ -102,7 +106,7 @@ class FileManager {
     return { filePath, relativeFilePath };
   }
 
-  _getCurrentDateString() {
+  private _getCurrentDateString(): string {
     const date = new Date();
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -110,12 +114,16 @@ class FileManager {
     return `${day}.${month}.${year}`;
   }
 
-  completeGeneration() {
+  async completeGeneration(): Promise<void> {
     if (!this.currentGenerationNumber) {
       throw new Error('No active generation to finish.');
     }
 
-    generationMeta.updateGenerationMeta();
+    await generationMeta.saveMeta({
+      counter: this.currentGenerationNumber,
+      lastGenerated: new Date().toISOString()
+    });
+
     this.currentGenerationNumber = null;
     this.currentGenerationDir = null;
   }
