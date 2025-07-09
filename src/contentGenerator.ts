@@ -1,58 +1,73 @@
-import { textGenerator } from './services/textGenerator';
-import { speechGenerator } from './services/speechGenerator';
+import { generateDialogService } from './services/texts/generateDialogService';
+import { generateMultiSpeakerSpeechService } from './services/speech/generateMultiSpeakerSpeechService';
 import { fileManager } from './services/fileManager';
 import { convertDialogDataToChunks } from './utils/convertDialogDataToChunks';
-import { dictionaryService } from './services/dictionaryService';
+import { WordFormsFormatter } from './utils/wordFormsFormatter';
 import * as promptsProvider from './utils/promptsProvider';
-import { WordData } from './types';
+import { fetchWordInfosService } from './services/wordInfo/fetchWordInfosService';
+import { logger } from './services/logger';
+import { WordInfo } from './types/wordInfo';
 
 const TEXT_CHUNK_LENGTH_LIMIT = 1500;
 const DIALOG_LINES_COUNT = 100;
 
-async function generateLearningContent(): Promise<void> {
-  await fileManager.initializeGeneration();
+async function test(): Promise<void> {
+  const wordInfo = await fetchWordInfosService.process(['kriegen', 'spielen']);
+  logger.info(wordInfo);
+}
 
-  console.log('🚀 🚀 🚀 STARTING CONTENT GENERATION PROCESS 🚀 🚀 🚀');
+async function runGeneration(): Promise<void> {
+  await fileManager.initializeGeneration();
+  logger.info('🚀 🚀 🚀 STARTING CONTENT GENERATION PROCESS 🚀 🚀 🚀');
 
   try {
     const inputWords = await promptsProvider.getInputWords();
-    return generateAndSaveWordDefinitions(inputWords)
-      .then(generateAndSaveText)
-      .then(generateAndSaveSpeech)
-      .then(() => {
-        fileManager.completeGeneration();
+    await generateMaterials(inputWords);
 
-        console.log('\n🎉 🎉 🎉 LEARNING CONTENT GENERATION COMPLETED 🎉 🎉 🎉');
-      });
+    await fileManager.completeGeneration();
+    logger.success('🎉 🎉 🎉 LEARNING CONTENT GENERATION COMPLETED 🎉 🎉 🎉');
   } catch (error) {
-    console.error('\n❌ Error during content generation:', error);
+    logger.error('❌ Error during content generation:', (error as Error).message);
     throw error;
   }
 }
 
-async function generateAndSaveWordDefinitions(inputWords: string[]): Promise<{ words_data: WordData[] }> {
-  const wordDefinitions = await dictionaryService.generateWordDefinitions(inputWords);
-  await fileManager.saveWordDefinitionsToCSVFile(wordDefinitions);
-
-  return wordDefinitions;
+async function generateMaterials(inputWords: string[]): Promise<void> {
+  await fetchWordInfos(inputWords)
+    .then(generateText)
+    .then(generateSpeech);
 }
 
-async function generateAndSaveText(wordDefinitions: { words_data: WordData[] }): Promise<string[]> {
-  const wordForms = wordDefinitions.words_data.map(word => word.forms).flat();
-  const textData = await textGenerator.generateDialog(wordForms, DIALOG_LINES_COUNT);
+async function fetchWordInfos(inputWords: string[]): Promise<WordInfo[]> {
+  const wordInfos = await fetchWordInfosService.process(inputWords);
+  await fileManager.saveWordInfosToCSVFile(wordInfos);
+
+  return wordInfos;
+}
+
+async function generateText(wordInfos: WordInfo[]): Promise<string[]> {
+  const wordForms = wordInfos.map(word => {
+    return WordFormsFormatter.toString(word.forms!, word.grammar!.partOfSpeech);
+  }).flat();
+
+  logger.debug(wordForms);
+
+  const textData = await generateDialogService.process(wordForms, DIALOG_LINES_COUNT);
+  // TODO: move convertDialogDataToChunks call to generateAndSaveSpeech
   const textChunks = convertDialogDataToChunks(textData, TEXT_CHUNK_LENGTH_LIMIT);
   await fileManager.saveTextChunksToFile(textChunks, 'dialog');
 
   return textChunks;
 }
 
-async function generateAndSaveSpeech(textChunks: string[]): Promise<Buffer[]> {
-  const audioData = await speechGenerator.generateMultiSpeakerSpeechFromChunks(textChunks);
+async function generateSpeech(textChunks: string[]): Promise<Buffer[]> {
+  const audioData = await generateMultiSpeakerSpeechService.process(textChunks);
   await fileManager.saveAudioToFile(audioData);
 
   return audioData;
 }
 
 export const contentGenerator = {
-  generateLearningContent,
+  runGeneration,
+  test,
 };

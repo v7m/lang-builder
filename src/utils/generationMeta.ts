@@ -1,7 +1,9 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
 import { GenerationMeta } from '../types';
+import { logger } from '../services/logger';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,7 +31,7 @@ async function saveMeta(meta: GenerationMeta): Promise<void> {
 
 async function resetGenerationMeta(): Promise<void> {
   await saveMeta({ counter: 0, lastGenerated: null });
-  console.log('✅ Generation meta has been reset');
+  logger.success('Generation meta has been reset', { indent: 1 });
 }
 
 async function incrementGenerationCounter(): Promise<number> {

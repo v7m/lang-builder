@@ -45,8 +45,8 @@ async function getInputWords(): Promise<string[]> {
     .filter(line => line.length > 0);
 }
 
-async function getWordsDataPrompt(words: string[]): Promise<string> {
-  const templatePath = path.join(PROMPTS_DIR, 'words_data_prompt_template.ejs');
+async function getWordInfosPrompt(words: string[]): Promise<string> {
+  const templatePath = path.join(PROMPTS_DIR, 'word_infos_prompt_template.ejs');
   const template = await fs.readFile(templatePath, 'utf8');
 
   return ejs.render(template, { words });
@@ -57,5 +57,5 @@ export {
   getDialogPrompt,
   getMonologuePrompt,
   getInputWords,
-  getWordsDataPrompt
+  getWordInfosPrompt
 };

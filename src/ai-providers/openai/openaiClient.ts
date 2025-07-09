@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 import { ChatCompletionOptions, OpenAIResponse } from '../../types';
+import { logger } from '../../services/logger';
 
 dotenv.config();
 
@@ -42,12 +43,15 @@ async function chatCompletionRequest({
   const data = await response.json() as OpenAIResponse;
 
   if (data.error) {
-    console.error("OpenAI API error:", data.error);
-    throw new Error(`OpenAI API Error: ${data.error.message}`);
+    const errorMessage = `OpenAI API Error: ${data.error.message}`;
+    logger.error(errorMessage);
+    throw new Error(errorMessage);
   }
 
   if (!data.choices || data.choices.length === 0) {
-    throw new Error("No choices returned from OpenAI API");
+    const errorMessage = "No choices returned from OpenAI API";
+    logger.error(errorMessage);
+    throw new Error(errorMessage);
   }
 
   const choice = data.choices[0];
@@ -59,7 +63,7 @@ async function chatCompletionRequest({
       const rawArgs = message.tool_calls[0].function.arguments;
       return JSON.parse(rawArgs);
     } catch (err) {
-      console.error("Failed to parse tool call arguments:", message.tool_calls[0].function.arguments);
+      logger.error("Failed to parse tool call arguments:", message.tool_calls[0].function.arguments);
       throw err;
     }
   }

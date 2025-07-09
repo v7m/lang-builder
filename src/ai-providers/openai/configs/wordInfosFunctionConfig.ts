@@ -1,4 +1,4 @@
-interface WordDataFunctionProperties {
+interface WordInfosFunctionProperties {
   id: {
     type: "number";
     description: "The index of the word in the input array (starting from 0)";
@@ -30,7 +30,7 @@ interface WordDataFunctionProperties {
   };
 }
 
-export const wordsDataFunctionConfig = {
+export const wordInfosFunctionConfig = {
   type: "function",
   function: {
     name: "generate_words_data",
@@ -42,7 +42,7 @@ export const wordsDataFunctionConfig = {
           type: "number",
           description: "Total number of processed words"
         },
-        words_data: {
+        word_infos: {
           type: "array",
           description: "Linguistic information for each word",
           items: {
@@ -77,7 +77,7 @@ export const wordsDataFunctionConfig = {
                 type: "string",
                 description: "Example sentence with the word replaced by '_____'"
               }
-            } as WordDataFunctionProperties,
+            } as WordInfosFunctionProperties,
             required: [
               "id",
               "word",
@@ -90,7 +90,7 @@ export const wordsDataFunctionConfig = {
           }
         }
       },
-      required: ["count", "words_data"]
+      required: ["count", "word_infos"]
     }
   }
 } as const;

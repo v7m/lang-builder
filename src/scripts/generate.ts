@@ -5,7 +5,9 @@ async function main() {
   const args = process.argv.slice(2);
 
   if (args.includes('--all')) {
-    await contentGenerator.generateLearningContent();
+    await contentGenerator.runGeneration();
+  } else if (args.includes('--test')) {
+    await contentGenerator.test();
   } else {
     console.error('Error: Missing required argument\n');
     console.error('Usage:');

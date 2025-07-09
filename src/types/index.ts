@@ -32,16 +32,6 @@ export interface GenerationMeta {
   lastGenerated: string | null;
 }
 
-export interface WordData {
-  id: number;
-  word: string;
-  part_of_speech: string;
-  regularity: string;
-  forms: string;
-  translation: string[];
-  example: string;
-}
-
 export interface DialogLine {
   id: number;
   speaker: "Speaker 1" | "Speaker 2";

@@ -7,13 +7,16 @@
     "start": "tsx src/scripts/generate.ts",
     "generate": "tsx src/scripts/generate.ts",
     "all": "tsx src/scripts/generate.ts --all",
+    "test": "tsx src/scripts/generate.ts --test",
     "reset-meta": "tsx src/scripts/reset-meta.ts",
     "dev": "tsx watch src/scripts/generate.ts"
   },
   "dependencies": {
     "@google/genai": "^0.6.0",
+    "axios": "^1.10.0",
     "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
+    "jsdom": "^26.1.0",
     "node-fetch": "^3.3.2",
     "p-limit": "^6.2.0",
     "wav": "^1.0.0"
@@ -21,6 +24,7 @@
   "devDependencies": {
     "@eslint/js": "^9.30.1",
     "@types/ejs": "^3.1.5",
+    "@types/jsdom": "^21.1.7",
     "@types/node": "^20.11.30",
     "@types/wav": "^1.0.4",
     "@typescript-eslint/eslint-plugin": "^8.36.0",
