@@ -12,6 +12,8 @@ const DEFAULT_LOG_LEVEL: LogLevel = 'info';
 const INDENT_STRING = '  ';
 const RESET_COLOR = '\x1b[0m';
 const TIMESTAMP_COLOR = '\x1b[90m'; // purple
+const LEVELS = ['info', 'warn', 'error', 'debug', 'success'];
+const MAX_LEVEL_LENGTH = Math.max(...LEVELS.map(l => l.length));
 
 const LOG_LEVEL_COLORS: Record<LogLevel, string> = {
   info: '\x1b[36m',    // cyan
@@ -77,28 +79,30 @@ function log(level: LogLevel, ...args: unknown[]): void {
     args.pop(); // remove options object
   }
 
-  const timestamp = formatTimestamp();
   const color = LOG_LEVEL_COLORS[level];
   const emoji = EMOJIS[level];
-  const timestampColor = `${TIMESTAMP_COLOR}${timestamp}${RESET_COLOR}`;
-  const label = `${emoji} [${color}${level.toUpperCase()}${RESET_COLOR}] [${timestampColor}]`;
+  const timestamp = `${TIMESTAMP_COLOR}[${formatTimestamp()}]${RESET_COLOR}`;
+  const spaces = ' '.repeat(MAX_LEVEL_LENGTH - level.length);
+  const levelLabel = `${color}[${level.toUpperCase()}]${spaces}${RESET_COLOR}`;
+  const label = `${emoji} ${levelLabel} ${timestamp}`;
   const indent = getIndent(indentLevel);
+  const prefix = `${indent}${label}`;
 
   switch (level) {
     case 'info':
-      console.info(`${color}${indent}${label}${RESET_COLOR}`, ...args);
+      console.info(prefix, ...args);
       break;
     case 'warn':
-      console.warn(`${color}${indent}${label}${RESET_COLOR}`, ...args);
+      console.warn(prefix, ...args);
       break;
     case 'error':
-      console.error(`${color}${indent}${label}${RESET_COLOR}`, ...args);
+      console.error(prefix, ...args);
       break;
     case 'debug':
-      console.debug(`${color}${indent}${label}${RESET_COLOR}`, ...args);
+      console.debug(prefix, ...args);
       break;
     default:
-      console.log(`${color}${indent}${label}${RESET_COLOR}`, ...args);
+      console.log(prefix, ...args);
   }
 }
 

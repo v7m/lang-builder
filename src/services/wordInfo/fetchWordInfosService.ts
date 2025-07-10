@@ -1,4 +1,4 @@
-import { httpClient } from '../httpClient';
+import { woerterClient } from '@/services/httpClients';
 import { WorterParser } from './parsers/worterParser';
 import { WordInfo } from '../../types/wordInfo';
 
@@ -10,7 +10,7 @@ async function process(words: string[]): Promise<WordInfo[]> {
   for (const word of words) {
     const url = worterUrl(word);
 
-    const { data: html } = await httpClient.get(url);
+    const { data: html } = await woerterClient.get(url);
     const wordInfo = WorterParser.parseHtml(html);
 
     wordInfos.push(wordInfo);

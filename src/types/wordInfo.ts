@@ -9,7 +9,10 @@ export type WordInfo = {
 export type Grammar = {
   partOfSpeech: PartOfSpeech;
   regular: boolean;
+  gender: Gender | null;
 };
+
+export type Gender = "masculine" | "feminine" | "neuter";
 
 export type Translations = {
   ru: string;
@@ -24,7 +27,6 @@ export type PartOfSpeech =
   | "preposition"
   | "conjunction"
   | "interjection"
-  | "article"
   | "numeral"
   | "unknown";
 
@@ -43,9 +45,9 @@ export type VerbForms = {
 };
 
 export type NounForms = {
-  singular: string;
-  plural: string;
-  gender: "der" | "die" | "das" | "";
+  nominativeSingular: string | null;
+  genitiveSingular: string | null;
+  nominativePlural: string | null;
 };
 
 export type AdjectiveForms = {
@@ -56,6 +58,6 @@ export type AdjectiveForms = {
 
 export type AdverbForms = {
   positive: string;
-  comparative?: string;
-  superlative?: string;
+  comparative: string;
+  superlative: string;
 };

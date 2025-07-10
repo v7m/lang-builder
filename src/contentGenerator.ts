@@ -12,8 +12,12 @@ const TEXT_CHUNK_LENGTH_LIMIT = 1500;
 const DIALOG_LINES_COUNT = 100;
 
 async function test(): Promise<void> {
-  const wordInfo = await fetchWordInfosService.process(['kriegen', 'spielen']);
-  logger.info(wordInfo);
+  // const inputWords = await promptsProvider.getInputWords();
+
+  const inputWords = ['gehen', 'anfragen', 'Mond', 'Wasserhahn', 'Shorts'];
+
+  const wordInfos = await fetchWordInfosService.process(inputWords);
+  logger.info(wordInfos);
 }
 
 async function runGeneration(): Promise<void> {

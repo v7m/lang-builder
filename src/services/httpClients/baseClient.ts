@@ -1,11 +1,14 @@
 import axios from 'axios';
-import { logger } from './logger';
+import { logger } from '../logger';
+
+const TIMEOUT_MS = 10000; // 10 seconds
+const HEADERS = {
+  'User-Agent': 'Mozilla/5.0',
+};
 
 export const httpClient = axios.create({
-  timeout: 10000,
-  headers: {
-    'User-Agent': 'Mozilla/5.0',
-  },
+  timeout: TIMEOUT_MS,
+  headers: HEADERS,
 });
 
 httpClient.interceptors.response.use(

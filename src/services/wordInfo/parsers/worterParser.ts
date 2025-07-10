@@ -3,35 +3,74 @@ import type {
   WordInfo,
   Grammar,
   PartOfSpeech,
-  WordForms,
-  VerbForms,
   Translations,
+  Gender,
+  WordForms,
+  NounForms,
+  VerbForms,
+  AdjectiveForms,
 } from "../../../types/wordInfo";
+import { logger } from '@/services/logger';
+import { buildCssSelector } from '@/utils/buildCssSelector';
+
+const TEXT_NODE = 3;
+const ELEMENT_NODE = 1;
 
 export class WorterParser {
   private static readonly PARENT_SELECTOR = 'body > article > div:nth-child(1)';
-  private static readonly EXAMPLES_SELECTOR = `
-    ${WorterParser.PARENT_SELECTOR}
-    > div.rAbschnitt
-    > div
-    > section:last-child
-    > div.rAufZu
-    > ul.rLst
-    > li`;
+  private static readonly EXAMPLES_SELECTOR = buildCssSelector(
+    WorterParser.PARENT_SELECTOR,
+    'div.rAbschnitt',
+    'div',
+    'section:last-child',
+    'div.rAufZu',
+    'ul.rLst',
+    'li',
+  );
 
-  private static readonly DEFINITION_SELECTOR = 
-    `${WorterParser.PARENT_SELECTOR}
-    > div.rAbschnitt
-    > div
-    > section:first-child
-    > div.rAufZu`;
+  private static readonly TRANSLATION_SELECTOR = buildCssSelector(
+    WorterParser.PARENT_SELECTOR,
+    'div.rInfo',
+    'section:first-child',
+    'div.rAufZu',
+    'dl:nth-of-type(2)',
+  );
 
-  private static readonly TRANSLATION_SELECTOR = 
-    `${WorterParser.PARENT_SELECTOR}
-    > div.rInfo
-    > section:first-child
-    > div.rAufZu
-    > dl:nth-of-type(2)`;
+  private static readonly FORMS_SELECTOR = buildCssSelector(
+    WorterParser.PARENT_SELECTOR,
+    'div.rInfo',
+    'section:nth-child(2)',
+    'div.rAufZu'
+  );
+
+  private static readonly DEFINITION_SELECTOR = buildCssSelector(
+    WorterParser.PARENT_SELECTOR,
+    'div.rAbschnitt',
+    'div',
+    'section:first-child',
+    'div.rAufZu',
+  );
+
+  private static readonly GENDER_SELECTOR = buildCssSelector(
+    WorterParser.DEFINITION_SELECTOR,
+    'div#wStckInf',
+    'div#wStckKrz',
+    'div.rCntr.rClear span[title^="gender"]',
+  );
+
+  private static readonly WORD_SELECTOR = buildCssSelector(
+    WorterParser.DEFINITION_SELECTOR,
+    'div#wStckInf',
+    'div#wStckKrz',
+    'div.rCntr.rClear q',
+  );
+
+  // private static readonly FORMS_SELECTOR = buildCssSelector(
+  //   WorterParser.DEFINITION_SELECTOR,
+  //   'div#wStckInf',
+  //   'div#wStckKrz',
+  //   'p:nth-child(2)',
+  // );
 
   private document: Document;
   private word: string;
@@ -44,8 +83,8 @@ export class WorterParser {
     const dom = new JSDOM(html);
     this.document = dom.window.document;
 
-    this.word = this.parseWord();
     this.grammar = this.parseGrammar();
+    this.word = this.parseWord();
     this.forms = this.parseForms();
     this.examples = this.parseExamples();
     this.translations = this.parseTranslations();
@@ -63,51 +102,103 @@ export class WorterParser {
     };
   }
 
+  // ======= PARSE WORD =======
+
   private parseWord(): string {
-    const selector = `${WorterParser.DEFINITION_SELECTOR} > div#wStckInf > div#wStckKrz > div`;
-    const element = this.document.querySelector(selector);
+    const container = this.document.querySelector(WorterParser.WORD_SELECTOR);
 
-    const word = element?.querySelector('u')?.textContent?.trim() || '';
+    if (!container) return '';
 
-    return word;
+    return this.extractDeepText(container as HTMLElement).replace(/\s+/g, ' ');
   }
 
-  private parseGrammar(): Grammar {
-    const partSelector = `${WorterParser.DEFINITION_SELECTOR} > span.rInf > span:nth-child(2)`;
-    const regSelector = `${WorterParser.DEFINITION_SELECTOR} > span.rInf > span:nth-child(4)`;
-    const partElement = this.document.querySelector(partSelector);
-    const regElement = this.document.querySelector(regSelector);
+  // ======= PARSE GRAMMAR =======
 
-    const partOfSpeech = (partElement?.textContent?.trim() || '') as PartOfSpeech;
-    const regularText = regElement?.textContent?.trim() || '';
-    const regular = regularText === "regular";
+  private parseGrammar(): Grammar {
+    const grammarSpans = Array.from(
+      this.document.querySelectorAll(`${WorterParser.DEFINITION_SELECTOR} span.rInf > span[title]`)
+    );
+
+    const tokens = grammarSpans
+      .map(span => span.textContent?.trim().toLowerCase())
+      .filter(Boolean);
+
+    let partOfSpeech: PartOfSpeech = 'unknown';
+    let regular = false;
+    let gender = null;
+
+    // Parse part of speech
+    const partsOfSpeech: PartOfSpeech[] = ['noun', 'verb', 'adjective'];
+    const foundPart = tokens.find(token => partsOfSpeech.includes(token as PartOfSpeech));
+    if (foundPart) {
+      partOfSpeech = foundPart as PartOfSpeech;
+    }
+
+    // Parse regular
+    regular = tokens.includes('regular');
+
+    // Parse gender from token
+    const genderToken = tokens.find(t => ['masculine', 'feminine', 'neuter'].includes(t || ''));
+    if (genderToken) {
+      gender = genderToken as Gender;
+    }
+
+    // Fallback gender parsing from DOM (if not determined yet)
+    if (partOfSpeech === 'noun' && !gender) {
+      const genderContainer = this.document.querySelector(WorterParser.GENDER_SELECTOR);
+      const genderRaw = genderContainer?.textContent?.trim().toLowerCase() || '';
+
+      const articleToGenderMap: Record<string, Gender> = {
+        der: 'masculine',
+        die: 'feminine',
+        das: 'neuter',
+      };
+
+      if (articleToGenderMap[genderRaw]) {
+        gender = articleToGenderMap[genderRaw];
+      }
+    }
 
     const grammar: Grammar = {
       partOfSpeech,
       regular,
+      gender,
     };
 
     return grammar;
   }
 
+  // ======= PARSE TRANSLATIONS =======
+
   private parseTranslations(): Translations {
     const selector = `${WorterParser.TRANSLATION_SELECTOR} dd[lang="ru"]`;
-    const ruElement = this.document.querySelector(selector);
-  
-    const ruTranslation = ruElement?.textContent?.trim() || '';
+    const translations: Translations = { ru: '' };
 
-    const translations: Translations = { ru: ruTranslation };
+    const ruContainer = this.document.querySelector(selector);
+    translations.ru = ruContainer?.textContent?.trim() || '';
 
-    return translations;
+    const processedTranslations = Object.fromEntries(
+      Object.entries(translations).map(([lang, text]) => [
+        lang,
+        text
+          .replace(/[\u2026.]+$/, '')        // remove ellipses and dots
+          .replace(/[,;]+$/, '')             // remove extra commas and semicolons at the end
+          .trim()
+      ])
+    );
+
+    return processedTranslations as Translations;
   }
 
+  // ======= PARSE EXAMPLES =======
+
   private parseExamples(): string[] {
-    const elements = Array.from(this.document.querySelectorAll(WorterParser.EXAMPLES_SELECTOR)).slice(0, 3);
+    const containers = Array.from(this.document.querySelectorAll(WorterParser.EXAMPLES_SELECTOR)).slice(0, 3);
     const examples: string[] = [];
 
-    elements.forEach((li) => {
+    containers.forEach((li) => {
       let text = '';
-  
+
       for (const node of li.childNodes) {
         if (node.nodeType === 3) {
           text += node.textContent;
@@ -117,7 +208,7 @@ export class WorterParser {
           break;
         }
       }
-  
+
       text = text.trim().replace(/\s+/g, ' ');
       if (text) examples.push(text);
     });
@@ -125,58 +216,142 @@ export class WorterParser {
     return examples;
   }
 
+  // ======= PARSE FORMS =======
+
   private parseForms(): WordForms | null {
-    const selector = `${WorterParser.DEFINITION_SELECTOR} > div#wStckInf > #wStckKrz > p:nth-child(2)`;
-    const element = this.document.querySelector(selector) as HTMLElement;
-    if (!element) return null;
+    const container = this.document.querySelector(WorterParser.FORMS_SELECTOR) as HTMLElement;
+
+    if (!container) return null;
 
     switch (this.grammar.partOfSpeech) {
       case "verb":
-        return this.parseVerbForms(element);
-      // case "noun":
-      //   return this.parseNounForms(...);
-      // case "adjective":
-      //   return this.parseAdjectiveForms(...);
+        return this.parseVerbForms(container);
+      case "noun":
+        return this.parseNounForms(container);
+      case "adjective":
+        return this.parseAdjectiveForms(container);
       default:
         return null;
     }
   }
 
-  private parseVerbForms(sector: HTMLElement): VerbForms | null {
-    const rawParts: string[] = [];
-    const elements = sector.querySelectorAll('q, i');
+  private parseVerbForms(container: HTMLElement): VerbForms | null {
+    let rawText = '';
 
-    elements.forEach(el => {
-      if (el.tagName.toLowerCase() === 'i') {
-        rawParts.push(el.textContent?.trim() || '');
+    for (const node of container.childNodes) {
+      if (
+        node.nodeType === ELEMENT_NODE &&
+        (node as HTMLElement).classList.contains('wFlxs')
+      ) {
+        break;
       }
 
-      if (el.tagName.toLowerCase() === 'q') {
-        let text = '';
-        el.childNodes.forEach(sub => {
-          if (sub.nodeType === 3) {
-            text += (sub.textContent || '').replace(/[".]/g, '');
-          } else if ((sub as Element).tagName.toLowerCase() === 'u') {
-            text += sub.textContent;
-          }
-        });
-        rawParts.push(text.trim());
+      if (node.nodeType === TEXT_NODE) {
+        rawText += node.textContent ?? '';
+      } else if (node.nodeType === ELEMENT_NODE) {
+        rawText += this.extractDeepText(node as HTMLElement);
       }
-    });
+    }
 
-    if (rawParts.length < 4) return null;
+    const parts = rawText
+      .split('·')
+      .map(this.normalizeText);
 
-    const present3 = rawParts[0];
-    const preterite = rawParts[1];
-    const perfect = `${rawParts[2]} ${rawParts[3]}`;
+    if (parts.length !== 3) {
+      logger.warn(`❌ Expected 3 verb parts, got ${parts.length}`);
+      return null;
+    }
 
-    const forms: VerbForms = {
+    return {
       infinitive: this.word,
-      present3,
-      preterite,
-      perfect,
+      present3: parts[0],
+      preterite: parts[1],
+      perfect: parts[2],
+    };
+  }
+
+  private parseNounForms(container: HTMLElement): NounForms | null {
+    let rawText = '';
+
+    for (const node of container.childNodes) {
+      if (
+        node.nodeType === ELEMENT_NODE &&
+        (node as HTMLElement).classList.contains('wFlxs')
+      ) break;
+
+      if (node.nodeType === TEXT_NODE) {
+        rawText += node.textContent ?? '';
+      } else if (node.nodeType === ELEMENT_NODE) {
+        rawText += this.extractDeepText(node as HTMLElement);
+      }
+    }
+
+    const parts = rawText
+      .split('·')
+      .map(s => this.normalizeText(s))
+      .filter(Boolean);
+
+    if (parts.length < 2) {
+      logger.warn(`❌ Not enough noun forms found: ${parts}`);
+      return null;
+    }
+
+    const nominativeSingular = this.grammar.gender ? this.word : null;
+
+    const genitiveSingular = parts[0] === '-' ? null : parts[0];
+    const nominativePlural = parts[1];
+
+    return {
+      nominativeSingular,
+      genitiveSingular,
+      nominativePlural
+    };
+  }
+
+  private parseAdjectiveForms(container: HTMLElement): AdjectiveForms | null {
+    const qElements = Array.from(container.querySelectorAll('q'));
+    if (qElements.length === 0) return null;
+
+    const positive = this.extractDeepText(qElements[0] as HTMLElement)
+      .replace(/\s+/g, ' ');
+
+    const comparative = qElements[1]
+      ? this.extractDeepText(qElements[1] as HTMLElement).replace(/\s+/g, ' ')
+      : '';
+
+    const superlative = qElements[2]
+      ? this.extractDeepText(qElements[2] as HTMLElement).replace(/\s+/g, ' ')
+      : '';
+
+    const forms: AdjectiveForms = {
+      positive,
+      comparative,
+      superlative,
     };
 
     return forms;
+  }
+
+  // ======= UTILS =======
+
+  private extractDeepText(el: HTMLElement): string {
+    let text = '';
+    el.childNodes.forEach(node => {
+      if (node.nodeType === TEXT_NODE) {
+        text += node.textContent;
+      } else if (node.nodeType === ELEMENT_NODE) {
+        text += this.extractDeepText(node as HTMLElement);
+      }
+    });
+    return text.trim();
+  }
+
+  private normalizeText(text: string): string {
+    return text
+      .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]+/g, '')   // remove superscript digits
+      .replace(/\s+/g, ' ')            // normalize spaces
+      .replace(/\s*\(\s*/g, ' (')      // normalize parentheses
+      .replace(/\s*\)\s*/g, ')')       // normalize parentheses
+      .trim();
   }
 }
