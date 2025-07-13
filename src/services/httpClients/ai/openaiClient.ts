@@ -1,7 +1,7 @@
 import { AxiosInstance } from 'axios';
 import { clientWithDelay } from '../core/clientWithDelay';
 
-const TIMEOUT_MS = 60000; // 60 seconds
+const TIMEOUT_MS = 180000; // 180 seconds
 
 const OPENAI_HEADERS = {
   'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,

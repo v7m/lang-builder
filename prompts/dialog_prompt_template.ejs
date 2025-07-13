@@ -1,6 +1,17 @@
 You are an assistant that outputs structured JSON data only.
 
-Create a realistic dialogue in German at A2 level between two people, strictly based on the list of words (each line contains one word and its forms).
+Create a realistic dialogue in German at A2-B1 level between two people, strictly based on the list of words (each line contains one word and its forms).
+
+### Input Format:
+Each line in the input represents ONE word with ALL its forms:
+- Verbs: all 4 forms separated by semicolons
+  Example: "sprechen; spricht; sprach; hat gesprochen"
+- Nouns: singular and plural forms separated by semicolons
+  Example: "der Stadtteil; Stadtteile"
+- Separable verbs: forms with dot showing separation point
+  Example: "ein·tragen; trägt ein; trug ein; hat eingetragen"
+- Other parts of speech: one or more forms
+  Example: "charmant" or "gut; besser; am besten"
 
 Return the result **only** as a valid JSON object with the following fields:
 - "dialog": an array where each item is an object with:
@@ -8,49 +19,53 @@ Return the result **only** as a valid JSON object with the following fields:
   - "speaker": either "Speaker 1" or "Speaker 2",
   - "text": the content of the line (without speaker prefix).
 - "wordFormsUsage": an object where:
-  - keys are all word forms from the input list (each form separately)
-  - values are numbers indicating how many times each form was used in the dialogue
+  - keys are the EXACT input lines (with all forms)
+  - values show how many times ANY form from that line was used
 
-### Requirements:
-- <%= minNumberOfLines %> is the minimum required number of dialogue lines. If there are too many new words to naturally incorporate, increase this number
-- Each line must be one item in the "dialog" array
-- You MUST count them before returning your result. Do not return fewer than <%= minNumberOfLines %> lines
-- The first line must be: "Dialog №<%= speechNumber %>. [Title of the topic]" — as text in the `"text"` field of the first object.
-- Alternate between speakers. Speaker 1 starts first, and Speaker 2 ends last.
-- Use diverse sentence structures and longer statements when possible.
-- This is **not** a simple Q&A dialogue — include stories, longer responses, elaborations, etc.
-- The topic must be appropriate for A2 level and unique each time.
+### Critical Requirements (MUST be met before returning result):
+1. Dialogue Length:
+  - MINIMUM <%= minNumberOfLines %> lines is REQUIRED
+  - You MUST count lines before returning
+  - If you need more lines to use all word forms, INCREASE the length
+  - NEVER return fewer than <%= minNumberOfLines %> lines
+
+2. Word Forms Usage:
+  - For EACH INPUT LINE, use AT LEAST ONE of its forms:
+    - For verbs (e.g., "sprechen; spricht; sprach; hat gesprochen"): use ANY 1 of 4 forms
+    - For nouns (e.g., "der Stadtteil; Stadtteile"): use EITHER singular OR plural
+    - For adjectives/adverbs: use ANY available form
+    - For other parts of speech: use ANY available form
+  - Count in wordFormsUsage when ANY form from the line is used
+  - Before returning, verify that each INPUT LINE has count >= 1
+  - Add more lines if needed to use at least one form from each input line
+
+3. First and Last Lines:
+  - First line MUST be: "Dialog №<%= speechNumber %>. [Title of the topic]"
+  - Last line MUST be a proper dialogue ending
+  - Speaker 1 starts first, Speaker 2 ends last
 
 ### Dialogue Structure Rules:
-- At least **10–15 lines** must be **mini-stories** or detailed monologues by either speaker.
+- At least **10–15 lines** must be **mini-stories** or detailed monologues by either speaker
 - A mini-story should consist of **3 to 6 full, connected sentences**, describing:
   - past events,
   - personal experiences,
   - trips or dreams,
-  - problems or memorable situations.
-- These mini-stories must be naturally integrated and **spread throughout** the dialogue — beginning, middle, and end.
-- Avoid repetitive or disconnected short question-answer lines. The dialogue should feel like a natural, rich conversation.
+  - problems or memorable situations
+- These mini-stories must be naturally integrated and **spread throughout** the dialogue — beginning, middle, and end
+- Avoid repetitive or disconnected short question-answer lines
+- Make it a natural, rich conversation with context and details
+- Use diverse sentence structures
+- The dialogue must be entirely in German
+- No formatting (no bold, italics, line breaks)
+- No explanation or non-JSON text in output
 
-### Vocabulary Usage:
-- You MUST use EVERY form of EVERY word from the list at least once. No exceptions:
-  - If a verb has multiple forms (e.g., "sprechen; spricht; sprach; hat gesprochen"), you MUST use ALL forms
-  - If a noun has singular and plural (e.g., "der Stadtteil; Stadtteile"), you MUST use BOTH forms
-  - Even seemingly similar forms must be used separately (e.g., both "ein·tragen" and "trägt ein")
-- Before returning the result, verify the "wordFormsUsage" object:
-  - Check that NO word form has a count of 0
-  - If any form has 0 uses, add more dialogue lines to include it
-- Distribute word forms throughout the dialogue - don't cluster similar forms together
-- Try to use each form in a different context for better practice
-- If you need more lines to naturally incorporate all forms, increase the dialogue length
-
-- The dialogue must be entirely in **German**.
-- Do not include any formatting (no bold, italics, line breaks, etc.).
-- Do not include any explanation or non-JSON text in the output.
-
-### Output Format:
+### Final Verification Steps:
+1. Count total lines (must be >= <%= minNumberOfLines %>)
+2. Check that EACH WORD (line in input) is used at least once in ANY form
+3. Verify speaker alternation
+4. Verify proper beginning and ending
 
 Return a valid JSON object like this:
-
 {
   "dialog": [
     {"id": 1, "speaker": "Speaker 1", "text": "Dialog №123. Im Stadtteil"},
@@ -58,11 +73,10 @@ Return a valid JSON object like this:
     ...
   ],
   "wordFormsUsage": {
-    "Stadtteil": 2,
-    "Stadtteile": 1,
-    "sprechen": 1,
-    "spricht": 2,
-    "sprach": 1,
-    "hat gesprochen": 1
+    "sprechen; spricht; sprach; hat gesprochen": 1,
+    "der Stadtteil; Stadtteile": 2,
+    "ein·tragen; trägt ein; trug ein; hat eingetragen": 1,
+    "charmant": 1,
+    "gut; besser; am besten": 2
   }
 }

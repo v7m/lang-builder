@@ -81,7 +81,7 @@ function extractWordForms(wordInfos: WordInfo[]): string[] {
 async function generateText(wordForms: string[], counterType: CounterType): Promise<string[]> {
   logger.debug(`wordForms: ${wordForms.length}`, { indent: 1 });
 
-  const speechNumber = await generationRegistry.getCounter(counterType);
+  const speechNumber = await generationRegistry.getCounter(counterType) + 1;
   const textData = await generateDialogService.perform(wordForms, MIN_DIALOG_LINES_COUNT, speechNumber);
   const textChunks = convertDialogDataToChunks(textData, TEXT_CHUNK_LENGTH_LIMIT);
   const text = textChunks.join('\n\n');

@@ -24,9 +24,11 @@ async function perform(
     max_tokens: MAX_TOKENS
   })) as DialogData;
 
-  logger.debug(textData);
-
-  logger.success('Dialog generated (' + textData.dialog.length + ' lines)', { indent: 1 });
+  logger.success(
+    'Dialog generated (' + textData.dialog.length + ' lines), ' +
+    'words used: ' + Object.keys(textData.wordFormsUsage).length,
+    { indent: 1 }
+  );
   
   return textData;
 }
