@@ -3,5 +3,5 @@ node_modules/
 .env
 
 output/
-data/generation_meta.json
+data/generation_registry.json
 input/words_list.txt

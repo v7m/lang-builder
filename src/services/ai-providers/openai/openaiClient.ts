@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
-import { ChatCompletionOptions, OpenAIResponse } from '../../types';
-import { logger } from '../../services/logger';
+import { ChatCompletionOptions, OpenAIResponse } from '@/types';
+import { logger } from '@/services/logger';
 
 dotenv.config();
 

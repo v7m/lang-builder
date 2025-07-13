@@ -1,9 +1,9 @@
 import pLimit from 'p-limit';
 
-import { geminiClient } from '../../ai-providers/gemini/geminiClient';
-import { multiSpeakerConfig } from '../../ai-providers/gemini/configs/multiSpeakerConfig';
-import * as promptsProvider from '../../utils/promptsProvider';
-import { logger } from '../logger';
+import { geminiClient } from '@/services/ai-providers/gemini/geminiClient';
+import { multiSpeakerConfig } from '@/services/ai-providers/gemini/configs/multiSpeakerConfig';
+import { promptsProvider } from '@/services/prompts';
+import { logger } from '@/services/logger';
 
 const SPEECH_REQUESTS_LIMIT = pLimit(3);
 

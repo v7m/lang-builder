@@ -27,9 +27,15 @@ export interface ChatCompletionOptions {
 }
 
 // Generation Types
-export interface GenerationMeta {
-  counter: number;
-  lastGenerated: string | null;
+export interface GenerationRegistry {
+  counter: {
+    test: number;
+    main: number;
+  };
+  lastGenerated: {
+    test: Nullable<string>;
+    main: Nullable<string>;
+  };
 }
 
 export interface DialogLine {
@@ -56,4 +62,6 @@ export interface MultiSpeakerConfig {
   topK: number;
   topP: number;
   maxOutputTokens: number;
-} 
+}
+
+export type Nullable<T> = T | null;

@@ -1,15 +1,17 @@
+import { Nullable } from '@/types';
+
 export type WordInfo = {
-  word: string | null;
-  grammar: Grammar | null;
-  forms: WordForms | null;
-  translations: Translations | null;
-  examples: string[] | null;
+  word: Nullable<string>;
+  grammar: Nullable<Grammar>;
+  forms: Nullable<WordForms>;
+  translations: Nullable<Translations>;
+  examples: Nullable<string[]>;
 };
 
 export type Grammar = {
   partOfSpeech: PartOfSpeech;
   regular: boolean;
-  gender: Gender | null;
+  gender: Nullable<Gender>;
 };
 
 export type Gender = "masculine" | "feminine" | "neuter";
@@ -45,9 +47,9 @@ export type VerbForms = {
 };
 
 export type NounForms = {
-  nominativeSingular: string | null;
-  genitiveSingular: string | null;
-  nominativePlural: string | null;
+  nominativeSingular: Nullable<string>;
+  genitiveSingular: Nullable<string>;
+  nominativePlural: Nullable<string>;
 };
 
 export type AdjectiveForms = {

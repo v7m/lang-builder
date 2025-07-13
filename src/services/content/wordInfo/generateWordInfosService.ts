@@ -1,8 +1,8 @@
-import { openaiClient } from '../../ai-providers/openai/openaiClient';
-import { wordInfosFunctionConfig } from '../../ai-providers/openai/configs/wordInfosFunctionConfig';
-import * as promptsProvider from '../../utils/promptsProvider';
-import { WordInfo } from '../../types/wordInfo';
-import { logger } from '../logger';
+import { openaiClient } from '@/services/ai-providers/openai/openaiClient';
+import { wordInfosFunctionConfig } from '@/services/ai-providers/openai/configs/wordInfosFunctionConfig';
+import { promptsProvider } from '@/services/prompts';
+import { WordInfo } from '@/types/wordInfo';
+import { logger } from '@/services/logger';
 
 const MAX_TOKENS = 6000;
 

@@ -9,9 +9,10 @@ import type {
   NounForms,
   VerbForms,
   AdjectiveForms,
-} from "../../../types/wordInfo";
+} from "@/types/wordInfo";
 import { logger } from '@/services/logger';
 import { buildCssSelector } from '@/utils/buildCssSelector';
+import { Nullable } from '@/types';
 
 const TEXT_NODE = 3;
 const ELEMENT_NODE = 1;
@@ -75,7 +76,7 @@ export class WorterParser {
   private document: Document;
   private word: string;
   private grammar: Grammar;
-  private forms: WordForms | null = null;
+  private forms: Nullable<WordForms> = null;
   private examples: string[] = [];
   private translations: Translations;
 
@@ -218,7 +219,7 @@ export class WorterParser {
 
   // ======= PARSE FORMS =======
 
-  private parseForms(): WordForms | null {
+  private parseForms(): Nullable<WordForms> {
     const container = this.document.querySelector(WorterParser.FORMS_SELECTOR) as HTMLElement;
 
     if (!container) return null;
@@ -235,7 +236,7 @@ export class WorterParser {
     }
   }
 
-  private parseVerbForms(container: HTMLElement): VerbForms | null {
+  private parseVerbForms(container: HTMLElement): Nullable<VerbForms> {
     let rawText = '';
 
     for (const node of container.childNodes) {
@@ -270,7 +271,7 @@ export class WorterParser {
     };
   }
 
-  private parseNounForms(container: HTMLElement): NounForms | null {
+  private parseNounForms(container: HTMLElement): Nullable<NounForms> {
     let rawText = '';
 
     for (const node of container.childNodes) {
@@ -308,7 +309,7 @@ export class WorterParser {
     };
   }
 
-  private parseAdjectiveForms(container: HTMLElement): AdjectiveForms | null {
+  private parseAdjectiveForms(container: HTMLElement): Nullable<AdjectiveForms> {
     const qElements = Array.from(container.querySelectorAll('q'));
     if (qElements.length === 0) return null;
 

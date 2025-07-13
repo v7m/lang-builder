@@ -1,45 +1,76 @@
-import { generateDialogService } from './services/texts/generateDialogService';
-import { generateMultiSpeakerSpeechService } from './services/speech/generateMultiSpeakerSpeechService';
-import { fileManager } from './services/fileManager';
-import { convertDialogDataToChunks } from './utils/convertDialogDataToChunks';
-import { WordFormsFormatter } from './utils/wordFormsFormatter';
-import * as promptsProvider from './utils/promptsProvider';
-import { fetchWordInfosService } from './services/wordInfo/fetchWordInfosService';
-import { logger } from './services/logger';
-import { WordInfo } from './types/wordInfo';
+import { fileManager } from '@/services/fileManager';
+import { generateDialogService, DIALOG_LINES_COUNT } from '@/services/content/texts/generateDialogService';
+import { generateMultiSpeakerSpeechService } from '@/services/content/speech/generateMultiSpeakerSpeechService';
+import { inputService } from '@/services/input';
+import { convertDialogDataToChunks, TEXT_CHUNK_LENGTH_LIMIT } from '@/utils/convertDialogDataToChunks';
+import { fetchWordInfosService } from '@/services/content/wordInfo/fetchWordInfosService';
+import { WordInfo } from '@/types/wordInfo';
+import { WordFormsPresenter } from '@/utils/WordFormsPresenter';
+import { logger } from '@/services/logger';
+import { logAndThrowError } from '@/utils/errors';
+import { CounterType, generationRegistry } from './services/generationRegistry';
 
-const TEXT_CHUNK_LENGTH_LIMIT = 1500;
-const DIALOG_LINES_COUNT = 100;
-
-async function test(): Promise<void> {
-  // const inputWords = await promptsProvider.getInputWords();
-
-  const inputWords = ['gehen', 'anfragen', 'Mond', 'Wasserhahn', 'Shorts'];
-
-  const wordInfos = await fetchWordInfosService.process(inputWords);
-  logger.info(wordInfos);
-}
-
-async function runGeneration(): Promise<void> {
-  await fileManager.initializeGeneration();
-  logger.info('🚀 🚀 🚀 STARTING CONTENT GENERATION PROCESS 🚀 🚀 🚀');
+export async function generateTextAndSpeech(): Promise<void> {
+  logger.info('🚀 🚀 🚀 STARTING TEXT AND SPEECH GENERATION PROCESS 🚀 🚀 🚀');
 
   try {
-    const inputWords = await promptsProvider.getInputWords();
-    await generateMaterials(inputWords);
+    await fileManager.withContentGenerationSession('main', async (generationType) => {
+      return inputService.getInputWords()
+        .then(inputWords => {
+          logger.debug('inputWords: ', inputWords);
+          return fetchWordInfos(inputWords);
+        })
+        .then(wordInfos => {
+          logger.debug('wordInfos: ', wordInfos);
+          return extractWordForms(wordInfos);
+        })
+        .then(wordForms => {
+          logger.debug('wordForms: ', wordForms);
+          return generateText(wordForms, generationType);
+        })
+        .then(textChunks => {
+          logger.debug('textChunks: ', textChunks);
+          return generateSpeech(textChunks);
+        })
+        .then(() => {
+          logger.success('🎉 🎉 🎉 TEXT AND SPEECH GENERATION COMPLETED 🎉 🎉 🎉', { indent: 1 });
+        });
+    });
 
-    await fileManager.completeGeneration();
-    logger.success('🎉 🎉 🎉 LEARNING CONTENT GENERATION COMPLETED 🎉 🎉 🎉');
+    logger.success('🎉 🎉 🎉 TEXT AND SPEECH GENERATION COMPLETED 🎉 🎉 🎉');
   } catch (error) {
-    logger.error('❌ Error during content generation:', (error as Error).message);
-    throw error;
+    logAndThrowError('❌ Error during text and speech generation', error as Error);
   }
 }
 
-async function generateMaterials(inputWords: string[]): Promise<void> {
-  await fetchWordInfos(inputWords)
-    .then(generateText)
-    .then(generateSpeech);
+export async function testGenerate(): Promise<void> {
+  logger.info('🚀 🚀 🚀 STARTING TEST GENERATION PROCESS 🚀 🚀 🚀');
+
+  try {
+    await fileManager.withContentGenerationSession('test', async (generationType) => {
+      return inputService.getInputWords()
+        .then(inputWords => {
+          logger.debug('inputWords: ', inputWords);
+          return fetchWordInfos(inputWords);
+        })
+        .then(wordInfos => {
+          logger.debug('wordInfos: ', wordInfos);
+          return extractWordForms(wordInfos);
+        })
+        .then(wordForms => {
+          logger.debug('wordForms: ', wordForms);
+          return generateText(wordForms, generationType);
+        })
+        .then(textChunks => {
+          logger.debug('textChunks: ', textChunks);
+          return generateSpeech(textChunks);
+        });
+    }).then(() => {
+      logger.success('🎉 🎉 🎉 TEST GENERATION COMPLETED 🎉 🎉 🎉');
+    });
+  } catch (error) {
+    logAndThrowError('❌ Error during text and speech generation', error as Error);
+  }
 }
 
 async function fetchWordInfos(inputWords: string[]): Promise<WordInfo[]> {
@@ -49,17 +80,20 @@ async function fetchWordInfos(inputWords: string[]): Promise<WordInfo[]> {
   return wordInfos;
 }
 
-async function generateText(wordInfos: WordInfo[]): Promise<string[]> {
-  const wordForms = wordInfos.map(word => {
-    return WordFormsFormatter.toString(word.forms!, word.grammar!.partOfSpeech);
-  }).flat();
+function extractWordForms(wordInfos: WordInfo[]): string[] {
+  return wordInfos.map(wordInfo =>
+    new WordFormsPresenter(wordInfo).toString()
+  ).flat();
+}
 
-  logger.debug(wordForms);
+async function generateText(wordForms: string[], counterType: CounterType): Promise<string[]> {
+  logger.debug(`wordForms: ${wordForms.length}`, { indent: 1 });
 
-  const textData = await generateDialogService.process(wordForms, DIALOG_LINES_COUNT);
-  // TODO: move convertDialogDataToChunks call to generateAndSaveSpeech
+  const speechNumber = await generationRegistry.getCounter(counterType);
+  const textData = await generateDialogService.process(wordForms, DIALOG_LINES_COUNT, speechNumber);
   const textChunks = convertDialogDataToChunks(textData, TEXT_CHUNK_LENGTH_LIMIT);
-  await fileManager.saveTextChunksToFile(textChunks, 'dialog');
+  const text = textChunks.join('\n\n');
+  await fileManager.saveTextToFile(text, 'dialog');
 
   return textChunks;
 }
@@ -72,6 +106,6 @@ async function generateSpeech(textChunks: string[]): Promise<Buffer[]> {
 }
 
 export const contentGenerator = {
-  runGeneration,
-  test,
+  generateTextAndSpeech,
+  testGenerate,
 };

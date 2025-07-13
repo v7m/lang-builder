@@ -1,21 +1,28 @@
 import path from 'path';
 import { mkdir } from 'fs/promises';
 import { fileURLToPath } from 'url';
-import { generationMeta } from '../../utils/generationMeta';
-import { logger } from '../logger';
-import { WordInfo } from '../../types/wordInfo';
-import { TextSaver } from './savers/textSaver';
-import { CsvSaver } from './savers/csvSaver';
-import { AudioSaver } from './savers/audioSaver';
+
+import { generationRegistry, type CounterType } from '@/services/generationRegistry';
+import { logger } from '@/services/logger';
+import { WordInfo } from '@/types/wordInfo';
+import { Nullable } from '@/types';
+import { TextSaver } from './savers/TextSaver';
+import { CsvSaver } from './savers/CsvSaver';
+import { AudioSaver } from './savers/AudioSaver';
+import { logAndThrowError } from '@/utils/errors';
 
 const OUTPUT_PATH = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../../output');
 
-const GENERATION_NOT_STARTED_ERROR_MESSAGE = 'Generation not started. Call initializeGeneration() first.';
-const NO_ACTIVE_GENERATION_ERROR_MESSAGE = 'No active generation found.';
+const GENERATION_ERRORS = {
+  NOT_STARTED: 'Generation not started. Call initializeGeneration() first.',
+  COMPLETED: 'Generation was completed. Start new generation with initializeGeneration().',
+  COUNTER_TYPE_REQUIRED: 'Counter type is required for this operation. Call initializeGeneration() first.',
+} as const;
 
 export class FileManager {
-  private currentGenerationNumber: number | null = null;
-  private currentGenerationDir: string | null = null;
+  private activeGenerationNumber: Nullable<number> = null;
+  private activeGenerationDirPath: Nullable<string> = null;
+  private activeCounterType: Nullable<CounterType> = null;
   
   private textSaver: TextSaver;
   private csvSaver: CsvSaver;
@@ -27,87 +34,150 @@ export class FileManager {
     this.audioSaver = new AudioSaver();
   }
 
-  async initializeGeneration(): Promise<void> {
-    await this._incrementGenerationCounter();
-    await this._initializeCurrentGenerationDir();
+  async withContentGenerationSession<T>(
+    counterType: CounterType,
+    callback: (generationType: CounterType) => Promise<T>
+  ): Promise<T> {
+    await this.initializeGeneration(counterType);
+
+    try {
+      const result = await callback(counterType);
+      await this.completeGeneration();
+      return result;
+    } catch (error) {
+      this._resetGeneration();
+      throw error;
+    }
   }
 
-  async completeGeneration(): Promise<void> {
-    if (!this.currentGenerationNumber) {
-      this._throwNoActiveGenerationError();
+  private async initializeGeneration(counterType: CounterType): Promise<void> {
+    if (!counterType) {
+      this._throwGenerationCounterTypeRequiredError();
     }
 
-    await generationMeta.saveMeta({
-      counter: this.currentGenerationNumber!,
-      lastGenerated: new Date().toISOString()
-    });
+    const meta = await generationRegistry.getRegistry();
+    this.activeGenerationNumber = meta.counter[counterType] + 1;
+    this.activeCounterType = counterType;
 
-    this.currentGenerationNumber = null;
-    this.currentGenerationDir = null;
+    await this._initializeGenerationDir();
   }
 
-  async saveTextChunksToFile(textChunks: string[], prefix: string): Promise<void> {
-    const { filePath, relativeFilePath } = this._getOutputFilePath(prefix, 'txt');
-    await this.textSaver.save(filePath, textChunks);
-    logger.info(`💾 Text saved to "output/${relativeFilePath}"`, { indent: 1 });
+  private async completeGeneration(): Promise<void> {
+    if (!this.activeCounterType) {
+      this._throwGenerationNotStartedError();
+    }
+    if (!this.activeGenerationNumber) {
+      this._throwGenerationCompletedError();
+    }
+
+    await generationRegistry.updateRegistry(this.activeCounterType, this.activeGenerationNumber);
+
+    this.activeGenerationNumber = null;
+    this.activeGenerationDirPath = null;
+    this.activeCounterType = null;
+  }
+
+  async saveTextToFile(text: string, prefix: string): Promise<void> {
+    this._validateGenerationState();
+
+    const { filePath, relativeFilePath } = this._buildGenerationFilePath(prefix, 'txt');
+    await this.textSaver.save(filePath, text);
+    logger.success(`💾 Text saved to "output/${relativeFilePath}"`, { indent: 1 });
   }
 
   async saveWordInfosToCSVFile(wordInfos: WordInfo[]): Promise<void> {
-    const { filePath, relativeFilePath } = this._getOutputFilePath('word_info', 'csv');
+    this._validateGenerationState();
+
+    const { filePath, relativeFilePath } = this._buildGenerationFilePath('word_info', 'csv');
     await this.csvSaver.save(filePath, wordInfos);
     logger.success(`💾 CSV file saved to "output/${relativeFilePath}"`, { indent: 1 });
   }
 
   async saveAudioToFile(audioData: Buffer[]): Promise<void> {
-    const { filePath, relativeFilePath } = this._getOutputFilePath('speech', 'wav');
+    this._validateGenerationState();
+
+    const { filePath, relativeFilePath } = this._buildGenerationFilePath('speech', 'wav');
     await this.audioSaver.save(filePath, audioData);
-    logger.info(`💾 Audio saved to "output/${relativeFilePath}"`, { indent: 1 });
+    logger.success(`💾 Audio saved to "output/${relativeFilePath}"`, { indent: 1 });
   }
 
-  private async _initializeCurrentGenerationDir(): Promise<void> {
-    await this._setCurrentGenerationDirPath();
-    await mkdir(this.currentGenerationDir!, { recursive: true });
+  private async _initializeGenerationDir(): Promise<void> {
+    await this._buildActiveGenerationDirPath();
+    await mkdir(this.activeGenerationDirPath!, { recursive: true });
   }
 
-  private async _setCurrentGenerationDirPath(): Promise<void> {
+  private async _buildActiveGenerationDirPath(): Promise<void> {
     const dateString = this._getCurrentDateString();
-    const generationDirName = `generation_${this.currentGenerationNumber}_${dateString}`;
-    this.currentGenerationDir = path.join(OUTPUT_PATH, generationDirName);
+    const generationDirName =
+      this.activeCounterType == 'test'
+        ? `test_generation_${this.activeGenerationNumber}_${dateString}`
+        : `generation_${this.activeGenerationNumber}_${dateString}`;
+
+    this.activeGenerationDirPath = path.join(OUTPUT_PATH, generationDirName);
   }
 
-  private async _incrementGenerationCounter(): Promise<void> {
-    this.currentGenerationNumber = await generationMeta.incrementGenerationCounter();
-  }
-
-  private _getOutputFilePath(prefix: string, extension: string): { filePath: string; relativeFilePath: string } {
-    if (!this.currentGenerationNumber || !this.currentGenerationDir) {
-      this._throwGenerationNotStartedError();
-    }
-
+  private _buildGenerationFilePath(
+    prefix: string,
+    extension: string,
+  ): { filePath: string; relativeFilePath: string } {
     const dateString = this._getCurrentDateString();
-    const fileName = `${prefix}_${this.currentGenerationNumber}_${dateString}.${extension}`;
-    const filePath = path.join(this.currentGenerationDir!, fileName);
+    const fileName = `${prefix}_${this.activeGenerationNumber}_${dateString}.${extension}`;
+    const filePath = path.join(this.activeGenerationDirPath!, fileName);
     const relativeFilePath = path.relative(process.cwd(), filePath).replace(/^output\//, '');
 
     return { filePath, relativeFilePath };
   }
 
+  private _validateGenerationState(): void {
+    if (!this.activeCounterType) {
+      this._throwGenerationNotStartedError();
+    }
+    if (!this.activeGenerationNumber || !this.activeGenerationDirPath) {
+      this._throwGenerationCompletedError();
+    }
+  }
+
   private _getCurrentDateString(): string {
     const now = new Date();
-    const day = String(now.getDate()).padStart(2, '0');
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const year = now.getFullYear();
+    const hours = now.getHours();
+
+    // If time is before 6 AM, use previous day
+    const adjustedDate = new Date(now);
+    if (hours < 6) {
+      adjustedDate.setDate(adjustedDate.getDate() - 1);
+    }
+
+    const day = String(adjustedDate.getDate()).padStart(2, '0');
+    const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+    const year = adjustedDate.getFullYear();
 
     return `${day}.${month}.${year}`;
   }
 
-  private _throwGenerationNotStartedError(): never {
-    logger.error(GENERATION_NOT_STARTED_ERROR_MESSAGE);
-    throw new Error(GENERATION_NOT_STARTED_ERROR_MESSAGE);
+  private _resetGeneration(): void {
+    this.activeGenerationNumber = null;
+    this.activeGenerationDirPath = null;
+    this.activeCounterType = null;
   }
 
-  private _throwNoActiveGenerationError(): never {
-    logger.error(NO_ACTIVE_GENERATION_ERROR_MESSAGE);
-    throw new Error(NO_ACTIVE_GENERATION_ERROR_MESSAGE);
+  private _throwGenerationNotStartedError(): never {
+    logAndThrowError(
+      GENERATION_ERRORS.NOT_STARTED,
+      new Error(GENERATION_ERRORS.NOT_STARTED)
+    );
   }
-} 
+
+  private _throwGenerationCompletedError(): never {
+    logAndThrowError(
+      GENERATION_ERRORS.COMPLETED,
+      new Error(GENERATION_ERRORS.COMPLETED)
+    );
+  }
+
+  private _throwGenerationCounterTypeRequiredError(): never {
+    logAndThrowError(
+      GENERATION_ERRORS.COUNTER_TYPE_REQUIRED,
+      new Error(GENERATION_ERRORS.COUNTER_TYPE_REQUIRED)
+    );
+  }
+}

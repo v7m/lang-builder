@@ -6,9 +6,12 @@
     "build": "tsc",
     "start": "tsx src/scripts/generate.ts",
     "generate": "tsx src/scripts/generate.ts",
-    "all": "tsx src/scripts/generate.ts --all",
+    "main": "tsx src/scripts/generate.ts --main",
     "test": "tsx src/scripts/generate.ts --test",
-    "reset-meta": "tsx src/scripts/reset-meta.ts",
+    "reset": "tsx src/scripts/reset-generation-registry.ts",
+    "reset-main": "tsx src/scripts/reset-generation-registry.ts --main",
+    "reset-test": "tsx src/scripts/reset-generation-registry.ts --test",
+    "reset-all": "npm run reset-main && npm run reset-test",
     "dev": "tsx watch src/scripts/generate.ts"
   },
   "dependencies": {

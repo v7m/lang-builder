@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
-import { WordInfo } from '../../../types/wordInfo';
-import { WordFormsFormatter } from '../../../utils/wordFormsFormatter';
+import { WordInfo } from '@/types/wordInfo';
+import { WordFormsPresenter } from '@/utils/WordFormsPresenter';
 
 const CSV_HEADER = [
   'ID',
@@ -15,13 +15,11 @@ const CSV_HEADER = [
 export class CsvSaver {
   async save(filePath: string, wordsData: WordInfo[]): Promise<void> {
     const csvRows = wordsData.map((entry, index) => {
-      const { word, grammar, forms, translations, examples } = entry;
+      const { word, grammar, translations, examples } = entry;
 
       const partOfSpeech = grammar?.partOfSpeech;
       const regularString = grammar?.regular ? 'regular' : 'irregular';
-      const formattedFormsString = forms && partOfSpeech 
-        ? WordFormsFormatter.toString(forms, partOfSpeech)
-        : '';
+      const formattedFormsString = this.getFormattedFormsString(entry);
       const formattedExamplesString = examples?.join('; ');
       
       return [
@@ -36,5 +34,13 @@ export class CsvSaver {
     }).join('\n');
 
     await fs.writeFile(filePath, CSV_HEADER + csvRows);
+  }
+
+  private getFormattedFormsString(wordInfo: WordInfo): string {
+    const { forms, grammar } = wordInfo;
+    const partOfSpeech = grammar?.partOfSpeech;
+    return forms && partOfSpeech
+      ? new WordFormsPresenter(wordInfo).toString()
+      : '';
   }
 } 

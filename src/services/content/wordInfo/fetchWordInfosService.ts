@@ -1,14 +1,17 @@
 import { woerterClient } from '@/services/httpClients';
-import { WorterParser } from './parsers/worterParser';
-import { WordInfo } from '../../types/wordInfo';
+import { WorterParser } from './parsers/WorterParser';
+import { WordInfo } from '@/types/wordInfo';
+import { logger } from '@/services/logger';
 
 const WOERTER_BASE_URL = 'https://www.woerter.net/';
 
 async function process(words: string[]): Promise<WordInfo[]> {
+  logger.info('Fetching word infos...');
+
   const wordInfos: WordInfo[] = [];
 
   for (const word of words) {
-    const url = worterUrl(word);
+    const url = `${WOERTER_BASE_URL}?w=${encodeURIComponent(word)}`;
 
     const { data: html } = await woerterClient.get(url);
     const wordInfo = WorterParser.parseHtml(html);
@@ -16,11 +19,9 @@ async function process(words: string[]): Promise<WordInfo[]> {
     wordInfos.push(wordInfo);
   }
 
-  return wordInfos;
-}
+  logger.success('Word infos fetched');
 
-function worterUrl(word: string): string {
-  return `${WOERTER_BASE_URL}?w=${encodeURIComponent(word)}`;
+  return wordInfos;
 }
 
 export const fetchWordInfosService = {

@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
-import { logger } from '../logger';
+
+import { logger } from '@/services/logger';
 
 const MIN_DELAY_MS = 1200; // 1.2 seconds
 const MAX_DELAY_MS = 2500; // 2.5 seconds
@@ -18,7 +19,7 @@ function delay(ms: number) {
 
 function randomDelay() {
   const ms = Math.floor(Math.random() * (MAX_DELAY_MS - MIN_DELAY_MS + 1)) + MIN_DELAY_MS;
-  logger.debug(`[woerterClient] Delaying request for ${ms}ms`);
+  logger.debug(`[woerterClient] Delaying request for ${ms}ms`, { indent: 1 });
   return delay(ms);
 }
 
@@ -38,11 +39,11 @@ woerterClient.interceptors.response.use(
     const status = error.response?.status;
     const url = error.config?.url;
 
-    logger.error(`[HTTP Error] ${status || 'No status'} for ${url}`);
-    logger.error(`[Message] ${error.message}`);
+    logger.error(`[HTTP Error] ${status || 'No status'} for ${url}`, { indent: 1 });
+    logger.error(`[Message] ${error.message}`, { indent: 1 });
 
     if (status === 429 || (status && status >= 500)) {
-      logger.warn(`Retrying request to ${url} after ${RETRY_DELAY_MS}ms...`);
+      logger.warn(`Retrying request to ${url} after ${RETRY_DELAY_MS}ms...`, { indent: 1 });
       await delay(RETRY_DELAY_MS);
       return woerterClient.request(error.config!);
     }

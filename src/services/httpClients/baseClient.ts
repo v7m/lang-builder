@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { logger } from '../logger';
+
+import { logger } from '@/services/logger';
 
 const TIMEOUT_MS = 10000; // 10 seconds
 const HEADERS = {
