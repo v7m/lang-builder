@@ -12,6 +12,7 @@ import { AudioSaver } from './savers/AudioSaver';
 import { logAndThrowError } from '@/utils/errors';
 
 const OUTPUT_PATH = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../../output');
+const TEST_OUTPUT_PATH = path.join(OUTPUT_PATH, 'test');
 
 const GENERATION_ERRORS = {
   NOT_STARTED: 'Generation not started. Call initializeGeneration() first.',
@@ -23,6 +24,7 @@ export class FileManager {
   private activeGenerationNumber: Nullable<number> = null;
   private activeGenerationDirPath: Nullable<string> = null;
   private activeCounterType: Nullable<CounterType> = null;
+  private isTestGeneration: boolean = false;
   
   private textSaver: TextSaver;
   private csvSaver: CsvSaver;
@@ -58,7 +60,7 @@ export class FileManager {
     const meta = await generationRegistry.getRegistry();
     this.activeGenerationNumber = meta.counter[counterType] + 1;
     this.activeCounterType = counterType;
-
+    this.isTestGeneration = counterType === 'test';
     await this._initializeGenerationDir();
   }
 
@@ -71,10 +73,7 @@ export class FileManager {
     }
 
     await generationRegistry.updateRegistry(this.activeCounterType, this.activeGenerationNumber);
-
-    this.activeGenerationNumber = null;
-    this.activeGenerationDirPath = null;
-    this.activeCounterType = null;
+    this._resetGeneration();
   }
 
   async saveTextToFile(text: string, prefix: string): Promise<void> {
@@ -113,7 +112,8 @@ export class FileManager {
         ? `test_generation_${this.activeGenerationNumber}_${dateString}`
         : `generation_${this.activeGenerationNumber}_${dateString}`;
 
-    this.activeGenerationDirPath = path.join(OUTPUT_PATH, generationDirName);
+    const outputPath = this.isTestGeneration ? TEST_OUTPUT_PATH : OUTPUT_PATH;
+    this.activeGenerationDirPath = path.join(outputPath, generationDirName);
   }
 
   private _buildGenerationFilePath(
@@ -158,6 +158,7 @@ export class FileManager {
     this.activeGenerationNumber = null;
     this.activeGenerationDirPath = null;
     this.activeCounterType = null;
+    this.isTestGeneration = false;
   }
 
   private _throwGenerationNotStartedError(): never {

@@ -1,5 +1,5 @@
 import { fileManager } from '@/services/fileManager';
-import { generateDialogService, DIALOG_LINES_COUNT } from '@/services/content/texts/generateDialogService';
+import { generateDialogService, MIN_DIALOG_LINES_COUNT } from '@/services/content/texts/generateDialogService';
 import { generateMultiSpeakerSpeechService } from '@/services/content/speech/generateMultiSpeakerSpeechService';
 import { inputService } from '@/services/input';
 import { convertDialogDataToChunks, TEXT_CHUNK_LENGTH_LIMIT } from '@/utils/convertDialogDataToChunks';
@@ -16,14 +16,6 @@ export async function generateTextAndSpeech(): Promise<void> {
   try {
     await fileManager.withContentGenerationSession('main', async (generationType) => {
       return inputService.getInputWords()
-        .then(inputWords => {
-          logger.debug('inputWords: ', inputWords);
-          return fetchWordInfos(inputWords);
-        })
-        .then(wordInfos => {
-          logger.debug('wordInfos: ', wordInfos);
-          return extractWordForms(wordInfos);
-        })
         .then(wordForms => {
           logger.debug('wordForms: ', wordForms);
           return generateText(wordForms, generationType);
@@ -74,7 +66,7 @@ export async function testGenerate(): Promise<void> {
 }
 
 async function fetchWordInfos(inputWords: string[]): Promise<WordInfo[]> {
-  const wordInfos = await fetchWordInfosService.process(inputWords);
+  const wordInfos = await fetchWordInfosService.perform(inputWords);
   await fileManager.saveWordInfosToCSVFile(wordInfos);
 
   return wordInfos;
@@ -90,7 +82,7 @@ async function generateText(wordForms: string[], counterType: CounterType): Prom
   logger.debug(`wordForms: ${wordForms.length}`, { indent: 1 });
 
   const speechNumber = await generationRegistry.getCounter(counterType);
-  const textData = await generateDialogService.process(wordForms, DIALOG_LINES_COUNT, speechNumber);
+  const textData = await generateDialogService.perform(wordForms, MIN_DIALOG_LINES_COUNT, speechNumber);
   const textChunks = convertDialogDataToChunks(textData, TEXT_CHUNK_LENGTH_LIMIT);
   const text = textChunks.join('\n\n');
   await fileManager.saveTextToFile(text, 'dialog');
@@ -99,7 +91,7 @@ async function generateText(wordForms: string[], counterType: CounterType): Prom
 }
 
 async function generateSpeech(textChunks: string[]): Promise<Buffer[]> {
-  const audioData = await generateMultiSpeakerSpeechService.process(textChunks);
+  const audioData = await generateMultiSpeakerSpeechService.perform(textChunks);
   await fileManager.saveAudioToFile(audioData);
 
   return audioData;

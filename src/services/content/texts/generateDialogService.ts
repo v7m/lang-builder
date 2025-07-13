@@ -1,26 +1,25 @@
-import { openaiClient } from '@/services/ai-providers/openai/openaiClient';
-import { dialogFunctionConfig } from '@/services/ai-providers/openai/configs/dialogFunctionConfig';
+import { OpenAI } from '@/services/ai-providers/openai';
 import { promptsProvider } from '@/services/prompts';
 import { DialogData } from '@/types';
 import { logger } from '@/services/logger';
 
 const MAX_TOKENS = 6000;
-export const DIALOG_LINES_COUNT = 100;
+export const MIN_DIALOG_LINES_COUNT = 100;
 
-async function process(
+async function perform(
   wordForms: string[],
-  numberOfLines = DIALOG_LINES_COUNT,
+  minNumberOfLines = MIN_DIALOG_LINES_COUNT,
   speechNumber: number
 ): Promise<DialogData> {
   logger.info('Starting dialog generation...');
 
-  const systemPrompt = await promptsProvider.getDialogPrompt(numberOfLines, speechNumber);
+  const systemPrompt = await promptsProvider.getDialogPrompt(minNumberOfLines, speechNumber);
   const userPrompt = JSON.stringify({ wordForms });
 
-  const textData = (await openaiClient.chatCompletionRequest({
+  const textData = (await OpenAI.requestChatCompletionService.perform({
     systemPrompt,
     userPrompt,
-    tools: [dialogFunctionConfig],
+    tools: [OpenAI.configs.dialog],
     tool_choice: "auto",
     max_tokens: MAX_TOKENS
   })) as DialogData;
@@ -33,5 +32,5 @@ async function process(
 }
 
 export const generateDialogService = {
-  process
+  perform
 };

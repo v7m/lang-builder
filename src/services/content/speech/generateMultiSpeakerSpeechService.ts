@@ -1,13 +1,12 @@
 import pLimit from 'p-limit';
 
-import { geminiClient } from '@/services/ai-providers/gemini/geminiClient';
-import { multiSpeakerConfig } from '@/services/ai-providers/gemini/configs/multiSpeakerConfig';
+import { Gemini } from '@/services/ai-providers/gemini';
 import { promptsProvider } from '@/services/prompts';
 import { logger } from '@/services/logger';
 
 const SPEECH_REQUESTS_LIMIT = pLimit(3);
 
-async function process(textChunks: string[]): Promise<Buffer[]> {
+async function perform(textChunks: string[]): Promise<Buffer[]> {
   logger.info('Starting speech generation...');
 
   const speechInstructions = await promptsProvider.getSpeechInstructions();
@@ -18,9 +17,9 @@ async function process(textChunks: string[]): Promise<Buffer[]> {
 
       const textWithInstruction = `${speechInstructions.trim()}\n${chunk}`;
 
-      return geminiClient.textToSpeechRequest({
+      return Gemini.generateTextToSpeechService.perform({
         prompt: textWithInstruction,
-        generationConfig: multiSpeakerConfig
+        generationConfig: Gemini.configs.multiSpeaker
       });
     })
   );
@@ -33,5 +32,5 @@ async function process(textChunks: string[]): Promise<Buffer[]> {
 }
 
 export const generateMultiSpeakerSpeechService = {
-  process
+  perform
 };

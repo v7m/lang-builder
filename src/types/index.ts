@@ -46,7 +46,7 @@ export interface DialogLine {
 
 export interface DialogData {
   dialog: DialogLine[];
-  word_forms_usage: Record<string, number>;
+  wordFormsUsage: Record<string, number>;
 }
 
 // Configuration Types
@@ -65,3 +65,4 @@ export interface MultiSpeakerConfig {
 }
 
 export type Nullable<T> = T | null;
+export type Optional<T> = T | undefined;

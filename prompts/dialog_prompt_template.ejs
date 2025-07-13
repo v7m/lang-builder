@@ -4,18 +4,18 @@ Create a realistic dialogue in German at A2 level between two people, strictly b
 
 Return the result **only** as a valid JSON object with the following fields:
 - "dialog": an array where each item is an object with:
-  - "id": the line number (from 1 to <%= number_of_lines %>),
+  - "id": the line number (from 1 to N),
   - "speaker": either "Speaker 1" or "Speaker 2",
   - "text": the content of the line (without speaker prefix).
-- "word_forms_usage": an object where:
+- "wordFormsUsage": an object where:
   - keys are all word forms from the input list (each form separately)
   - values are numbers indicating how many times each form was used in the dialogue
 
 ### Requirements:
-- You must generate exactly <%= number_of_lines %> lines of dialogue.
-- Each line must be one item in the "dialog" array.
-- You MUST count them before returning your result. Do not return fewer than <%= number_of_lines %> items. This is required.
-- The first line must be: "Dialog №<%= speech_number %>. [Title of the topic]" — as text in the `"text"` field of the first object.
+- <%= minNumberOfLines %> is the minimum required number of dialogue lines. If there are too many new words to naturally incorporate, increase this number
+- Each line must be one item in the "dialog" array
+- You MUST count them before returning your result. Do not return fewer than <%= minNumberOfLines %> lines
+- The first line must be: "Dialog №<%= speechNumber %>. [Title of the topic]" — as text in the `"text"` field of the first object.
 - Alternate between speakers. Speaker 1 starts first, and Speaker 2 ends last.
 - Use diverse sentence structures and longer statements when possible.
 - This is **not** a simple Q&A dialogue — include stories, longer responses, elaborations, etc.
@@ -32,12 +32,16 @@ Return the result **only** as a valid JSON object with the following fields:
 - Avoid repetitive or disconnected short question-answer lines. The dialogue should feel like a natural, rich conversation.
 
 ### Vocabulary Usage:
-- Use **all forms** of **all** words from the list. For example:
-  - for the entry "sprechen; spricht; sprach; hat gesprochen", use **each** form at least once;
-  - for the entry "der Stadtteil; Stadtteile", use both singular ("Stadtteil") and plural ("Stadtteile") forms.
-  - for the entry with only one form, use only one form.
-- Distribute word forms **evenly** across the entire dialogue — don't group them all at the beginning or end.
-- Reusing word forms in different contexts is encouraged for better practice.
+- You MUST use EVERY form of EVERY word from the list at least once. No exceptions:
+  - If a verb has multiple forms (e.g., "sprechen; spricht; sprach; hat gesprochen"), you MUST use ALL forms
+  - If a noun has singular and plural (e.g., "der Stadtteil; Stadtteile"), you MUST use BOTH forms
+  - Even seemingly similar forms must be used separately (e.g., both "ein·tragen" and "trägt ein")
+- Before returning the result, verify the "wordFormsUsage" object:
+  - Check that NO word form has a count of 0
+  - If any form has 0 uses, add more dialogue lines to include it
+- Distribute word forms throughout the dialogue - don't cluster similar forms together
+- Try to use each form in a different context for better practice
+- If you need more lines to naturally incorporate all forms, increase the dialogue length
 
 - The dialogue must be entirely in **German**.
 - Do not include any formatting (no bold, italics, line breaks, etc.).
@@ -53,7 +57,7 @@ Return a valid JSON object like this:
     {"id": 2, "speaker": "Speaker 2", "text": "Hallo! Wie findest du unseren Stadtteil?"},
     ...
   ],
-  "word_forms_usage": {
+  "wordFormsUsage": {
     "Stadtteil": 2,
     "Stadtteile": 1,
     "sprechen": 1,

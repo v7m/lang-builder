@@ -11,13 +11,13 @@ async function getSpeechInstructions(): Promise<string> {
   return await fs.readFile(filePath, 'utf8');
 }
 
-async function getDialogPrompt(numberOfLines: number, speechNumber: number): Promise<string> {
+async function getDialogPrompt(minNumberOfLines: number, speechNumber: number): Promise<string> {
   const templatePath = path.join(PROMPTS_DIR, 'dialog_prompt_template.ejs');
   const template = await fs.readFile(templatePath, 'utf8');
 
   return ejs.render(template, {
-    number_of_lines: numberOfLines,
-    speech_number: speechNumber
+    minNumberOfLines: minNumberOfLines,
+    speechNumber: speechNumber
   });
 }
 

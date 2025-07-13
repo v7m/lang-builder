@@ -1,14 +1,15 @@
-import fetch from 'node-fetch';
 import dotenv from 'dotenv';
-import { ChatCompletionOptions, OpenAIResponse } from '@/types';
+import type { ChatCompletionOptions } from './types';
 import { logger } from '@/services/logger';
+import { httpClient } from '@/services/httpClients';
 
 dotenv.config();
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const OPENAI_MODEL = "gpt-4o";
+const client = httpClient.createOpenaiClient();
 
-async function chatCompletionRequest({
+async function perform({
   model = OPENAI_MODEL,
   systemPrompt,
   userPrompt,
@@ -29,18 +30,7 @@ async function chatCompletionRequest({
     tool_choice
   };
 
-  const headers = {
-    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-    'Content-Type': 'application/json'
-  };
-
-  const response = await fetch(OPENAI_API_URL, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(requestBody)
-  });
-
-  const data = await response.json() as OpenAIResponse;
+  const { data } = await client.post(OPENAI_API_URL, requestBody);
 
   if (data.error) {
     const errorMessage = `OpenAI API Error: ${data.error.message}`;
@@ -86,6 +76,6 @@ async function chatCompletionRequest({
   }
 }
 
-export const openaiClient = {
-  chatCompletionRequest
+export const requestChatCompletionService = {
+  perform
 };
