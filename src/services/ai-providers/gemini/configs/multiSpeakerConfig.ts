@@ -1,3 +1,39 @@
+export const GEMINI_FEMALE_VOICES = [
+  "Achernar",
+  "Aoede",
+  "Autonoe",
+  "Callirrhoe",
+  "Despina",
+  "Erinome",
+  "Gacrux",
+  "Kore",
+  "Laomedeia",
+  "Leda",
+  "Pulcherrima",
+  "Sulafat",
+  "Vindemiatrix",
+  "Zephyr"
+];
+
+export const GEMINI_MALE_VOICES = [
+  "Achird",
+  "Algenib",
+  "Algieba",
+  "Alnilam",
+  "Charon",
+  "Enceladus",
+  "Fenrir",
+  "Iapetus",
+  "Orus",
+  "Puck",
+  "Rasalgethi",
+  "Sadachbia",
+  "Sadaltager",
+  "Schedar",
+  "Umbriel",
+  "Zubenelgenubi"
+];
+
 interface VoiceConfig {
   prebuiltVoiceConfig: {
     voiceName: string;
