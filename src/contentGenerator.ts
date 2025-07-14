@@ -1,5 +1,5 @@
 import { fileManager } from '@/services/fileManager';
-import { generateDialogService, MIN_DIALOG_LINES_COUNT } from '@/services/content/texts/generateDialogService';
+import { generateDialogService } from '@/services/content/texts/generateDialogService';
 import { generateMultiSpeakerSpeechService } from '@/services/content/speech/generateMultiSpeakerSpeechService';
 import { inputService } from '@/services/input';
 import { convertDialogDataToChunks, TEXT_CHUNK_LENGTH_LIMIT } from '@/utils/convertDialogDataToChunks';
@@ -9,6 +9,8 @@ import { WordFormsPresenter } from '@/utils/WordFormsPresenter';
 import { logger } from '@/services/logger';
 import { logAndThrowError } from '@/utils/errors';
 import { CounterType, generationRegistry } from './services/generationRegistry';
+
+const MIN_DIALOG_LINES_COUNT = 120;
 
 export async function generateTextAndSpeech(): Promise<void> {
   logger.info('🚀 🚀 🚀 STARTING TEXT AND SPEECH GENERATION PROCESS 🚀 🚀 🚀');

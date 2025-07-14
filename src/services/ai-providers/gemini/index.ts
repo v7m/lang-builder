@@ -1,12 +1,12 @@
-import { generateTextToSpeechService } from './generateTextToSpeechService';
+import { generateSpeechService } from './generateSpeechService';
 import { multiSpeakerConfig } from './configs/multiSpeakerConfig';
-import type { TextToSpeechRequest } from './types';
+import type { GenerateSpeechRequest } from './types';
 
 export const Gemini = {
-  generateTextToSpeechService,
+  generateSpeechService,
   configs: {
     multiSpeaker: multiSpeakerConfig
   }
 } as const;
 
-export type { TextToSpeechRequest }; 
+export type { GenerateSpeechRequest };

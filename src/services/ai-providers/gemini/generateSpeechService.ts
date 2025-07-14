@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { Buffer } from 'buffer';
 import process from 'process';
-import type { TextToSpeechRequest } from './types';
+import type { GenerateSpeechRequest } from './types';
 import { logger } from '@/services/logger';
 import { httpClient } from '@/services/httpClients';
 
@@ -16,7 +16,7 @@ async function perform({
   model = GEMINI_MODEL,
   prompt,
   generationConfig = undefined
-}: TextToSpeechRequest): Promise<Buffer> {
+}: GenerateSpeechRequest): Promise<Buffer> {
   const requestConfig = {
     model: model,
     contents: [{
@@ -41,6 +41,6 @@ async function perform({
   return audioBuffer;
 }
 
-export const generateTextToSpeechService = {
+export const generateSpeechService = {
   perform
 };

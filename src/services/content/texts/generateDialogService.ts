@@ -26,7 +26,7 @@ async function perform(
 
   logger.success(
     'Dialog generated (' + textData.dialog.length + ' lines), ' +
-    'words used: ' + Object.keys(textData.wordFormsUsage).length,
+    'words used: ' + Object.keys(textData.wordFormsUsage).filter(word => textData.wordFormsUsage[word] > 0).length,
     { indent: 1 }
   );
   

@@ -1,4 +1,4 @@
-interface DialogFunctionConfig {
+export interface DialogFunctionConfig {
   type: "function";
   function: {
     name: string;

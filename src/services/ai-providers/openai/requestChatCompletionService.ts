@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import type { ChatCompletionOptions } from './types';
+import type { ChatCompletionOptions, OpenAIResponse } from './types';
 import { logger } from '@/services/logger';
 import { httpClient } from '@/services/httpClients';
 
@@ -32,6 +32,10 @@ async function perform({
 
   const { data } = await client.post(OPENAI_API_URL, requestBody);
 
+  return parseResponse(data);
+}
+
+function parseResponse(data: OpenAIResponse) {
   if (data.error) {
     const errorMessage = `OpenAI API Error: ${data.error.message}`;
     logger.error(errorMessage);

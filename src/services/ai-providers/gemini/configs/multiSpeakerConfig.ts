@@ -1,6 +1,3 @@
-const GEMINI_FEMALE_VOICE = "Kore";
-const GEMINI_MALE_VOICE = "Puck";
-
 interface VoiceConfig {
   prebuiltVoiceConfig: {
     voiceName: string;
@@ -21,28 +18,30 @@ export interface MultiSpeakerConfig {
   };
 }
 
-export const multiSpeakerConfig: MultiSpeakerConfig = {
-  responseModalities: ["AUDIO"],
-  speechConfig: {
-    multiSpeakerVoiceConfig: {
-      speakerVoiceConfigs: [
-        {
-          speaker: "Female",
-          voiceConfig: {
-            prebuiltVoiceConfig: {
-              voiceName: GEMINI_FEMALE_VOICE
+export const multiSpeakerConfig = (femaleVoice: string, maleVoice: string): MultiSpeakerConfig => {
+  return {
+    responseModalities: ["AUDIO"],
+    speechConfig: {
+      multiSpeakerVoiceConfig: {
+        speakerVoiceConfigs: [
+          {
+            speaker: "Female",
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName: femaleVoice
+              }
+            }
+          },
+          {
+            speaker: "Male",
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName: maleVoice
+              }
             }
           }
-        },
-        {
-          speaker: "Male",
-          voiceConfig: {
-            prebuiltVoiceConfig: {
-              voiceName: GEMINI_MALE_VOICE
-            }
-          }
-        }
-      ]
+        ]
+      }
     }
   }
 };

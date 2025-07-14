@@ -1,5 +1,7 @@
-export interface TextToSpeechRequest {
+import type { MultiSpeakerConfig } from './configs/multiSpeakerConfig';
+
+export interface GenerateSpeechRequest {
   model?: string;
   prompt: string;
-  generationConfig?: any;
-} 
+  generationConfig?: MultiSpeakerConfig;
+}
