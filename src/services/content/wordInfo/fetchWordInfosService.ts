@@ -1,4 +1,4 @@
-import { fetchWoerterWordInfoService } from '@/services/dictionaries/woerter/woerterService';
+import { fetchWoerterWordInfoService } from '@/services/dictionaries/woerter/fetchWoerterWordInfoService';
 import type { WordInfo } from '@/types/wordInfo';
 
 async function perform(words: string[]): Promise<WordInfo[]> {
