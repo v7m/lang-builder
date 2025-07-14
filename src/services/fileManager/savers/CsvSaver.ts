@@ -1,5 +1,5 @@
 import fs from 'fs/promises';
-import { WordInfo } from '@/types/wordInfo';
+import { WordEntry } from '@/types/wordEntry';
 import { WordFormsPresenter } from '@/utils/WordFormsPresenter';
 
 const CSV_HEADER = [
@@ -13,7 +13,7 @@ const CSV_HEADER = [
 ].join(',') + '\n';
 
 export class CsvSaver {
-  async save(filePath: string, wordsData: WordInfo[]): Promise<void> {
+  async save(filePath: string, wordsData: WordEntry[]): Promise<void> {
     const csvRows = wordsData.map((entry, index) => {
       const { word, grammar, translations, examples } = entry;
 
@@ -36,11 +36,11 @@ export class CsvSaver {
     await fs.writeFile(filePath, CSV_HEADER + csvRows);
   }
 
-  private getFormattedFormsString(wordInfo: WordInfo): string {
-    const { forms, grammar } = wordInfo;
+  private getFormattedFormsString(wordEntry: WordEntry): string {
+    const { forms, grammar } = wordEntry;
     const partOfSpeech = grammar?.partOfSpeech;
     return forms && partOfSpeech
-      ? new WordFormsPresenter(wordInfo).toString()
+      ? new WordFormsPresenter(wordEntry).toString()
       : '';
   }
 } 

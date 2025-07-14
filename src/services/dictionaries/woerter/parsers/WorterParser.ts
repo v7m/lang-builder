@@ -1,6 +1,6 @@
 import { JSDOM } from 'jsdom';
 import type {
-  WordInfo,
+  WordEntry,
   Grammar,
   PartOfSpeech,
   Translations,
@@ -9,7 +9,7 @@ import type {
   NounForms,
   VerbForms,
   AdjectiveForms,
-} from "@/types/wordInfo";
+} from "@/types/wordEntry";
 import { logger } from '@/services/logger';
 import { buildCssSelector } from '@/utils/buildCssSelector';
 import { Nullable } from '@/types';
@@ -91,7 +91,7 @@ export class WorterParser {
     this.translations = this.parseTranslations();
   }
 
-  static parseHtml(html: string): WordInfo {
+  static parseHtml(html: string): WordEntry {
     const parser = new WorterParser(html);
 
     return {

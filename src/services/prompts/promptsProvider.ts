@@ -21,8 +21,8 @@ async function getDialogPrompt(minNumberOfLines: number, speechNumber: number): 
   });
 }
 
-async function getWordInfosPrompt(words: string[]): Promise<string> {
-  const templatePath = path.join(PROMPTS_DIR, 'word_infos_prompt_template.ejs');
+async function getWordEntriesPrompt(words: string[]): Promise<string> {
+  const templatePath = path.join(PROMPTS_DIR, 'word_entries_prompt_template.ejs');
   const template = await fs.readFile(templatePath, 'utf8');
 
   return ejs.render(template, { words });
@@ -31,5 +31,5 @@ async function getWordInfosPrompt(words: string[]): Promise<string> {
 export const promptsProvider = {
   getSpeechInstructions,
   getDialogPrompt,
-  getWordInfosPrompt
+  getWordEntriesPrompt
 };

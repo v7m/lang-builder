@@ -6,17 +6,17 @@ import {
   AdverbForms,
   Gender,
   Grammar,
-  WordInfo,
-} from '../types/wordInfo';
+  WordEntry,
+} from '../types/wordEntry';
 import { Nullable } from '../types';
 
 export class WordFormsPresenter {
   private forms: WordForms;
   private grammar: Grammar;
 
-  constructor(wordInfo: WordInfo) {
-    this.forms = wordInfo.forms!;
-    this.grammar = wordInfo.grammar!;
+  constructor(wordEntry: WordEntry) {
+    this.forms = wordEntry.forms!;
+    this.grammar = wordEntry.grammar!;
   }
 
   toString(): string {

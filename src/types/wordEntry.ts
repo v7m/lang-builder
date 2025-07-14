@@ -1,6 +1,6 @@
 import { Nullable } from '@/types';
 
-export type WordInfo = {
+export type WordEntry = {
   word: Nullable<string>;
   grammar: Nullable<Grammar>;
   forms: Nullable<WordForms>;

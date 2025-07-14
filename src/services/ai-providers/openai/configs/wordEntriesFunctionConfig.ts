@@ -1,4 +1,4 @@
-export interface WordInfosFunctionConfig {
+export interface WordEntriesFunctionConfig {
   type: "function";
   function: {
     name: "generate_words_data";
@@ -10,7 +10,7 @@ export interface WordInfosFunctionConfig {
           type: "number";
           description: "Total number of processed words";
         };
-        word_infos: {
+        word_entries: {
           type: "array";
           description: "Linguistic information for each word";
           items: {
@@ -55,7 +55,7 @@ export interface WordInfosFunctionConfig {
   }
 };
 
-export const wordInfosFunctionConfig: WordInfosFunctionConfig = {
+export const wordEntriesFunctionConfig: WordEntriesFunctionConfig = {
   type: "function",
   function: {
     name: "generate_words_data",
@@ -67,7 +67,7 @@ export const wordInfosFunctionConfig: WordInfosFunctionConfig = {
           type: "number",
           description: "Total number of processed words"
         },
-        word_infos: {
+        word_entries: {
           type: "array",
           description: "Linguistic information for each word",
           items: {
@@ -115,7 +115,7 @@ export const wordInfosFunctionConfig: WordInfosFunctionConfig = {
           }
         }
       },
-      required: ["count", "word_infos"]
+      required: ["count", "word_entries"]
     }
   }
 } as const;

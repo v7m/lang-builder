@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 
 import { generationRegistry, type CounterType } from '@/services/generationRegistry';
 import { logger } from '@/services/logger';
-import { WordInfo } from '@/types/wordInfo';
+import { WordEntry } from '@/types/wordEntry';
 import { Nullable } from '@/types';
 import { TextSaver } from './savers/TextSaver';
 import { CsvSaver } from './savers/CsvSaver';
@@ -84,11 +84,11 @@ export class FileManager {
     logger.success(`💾 Text saved to "output/${relativeFilePath}"`, { indent: 1 });
   }
 
-  async saveWordInfosToCSVFile(wordInfos: WordInfo[]): Promise<void> {
+  async saveWordEntriesToCSVFile(wordEntries: WordEntry[]): Promise<void> {
     this._validateGenerationState();
 
-    const { filePath, relativeFilePath } = this._buildGenerationFilePath('word_info', 'csv');
-    await this.csvSaver.save(filePath, wordInfos);
+    const { filePath, relativeFilePath } = this._buildGenerationFilePath('word_entry', 'csv');
+    await this.csvSaver.save(filePath, wordEntries);
     logger.success(`💾 CSV file saved to "output/${relativeFilePath}"`, { indent: 1 });
   }
 

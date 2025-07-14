@@ -1,13 +1,13 @@
 import { requestChatCompletionService } from './requestChatCompletionService';
 import { dialogFunctionConfig } from './configs/dialogFunctionConfig';
-import { wordInfosFunctionConfig } from './configs/wordInfosFunctionConfig';
+import { wordEntriesFunctionConfig } from './configs/wordEntriesFunctionConfig';
 import type { ChatCompletionOptions } from './types';
 
 export const OpenAI = {
   requestChatCompletionService,
   configs: {
     dialog: dialogFunctionConfig,
-    wordInfos: wordInfosFunctionConfig
+    wordEntries: wordEntriesFunctionConfig
   }
 } as const;
 

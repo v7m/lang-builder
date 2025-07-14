@@ -1,10 +1,10 @@
 import { fileManager } from '@/services/fileManager';
 import { generateDialogService } from '@/services/content/texts/generateDialogService';
-import { generateMultiSpeakerSpeechService } from '@/services/content/speech/generateMultiSpeakerSpeechService';
+import { generateMultiSpeakerSpeechService } from '@/services/content/speeches/generateMultiSpeakerSpeechService';
 import { inputService } from '@/services/input';
 import { convertDialogDataToChunks, TEXT_CHUNK_LENGTH_LIMIT } from '@/utils/convertDialogDataToChunks';
-import { fetchWordInfosService } from '@/services/content/wordInfo/fetchWordInfosService';
-import { WordInfo } from '@/types/wordInfo';
+import { fetchWordEntriesService } from '@/services/content/wordEntries/fetchWordEntriesService';
+import { WordEntry } from '@/types/wordEntry';
 import { WordFormsPresenter } from '@/utils/WordFormsPresenter';
 import { logger } from '@/services/logger';
 import { logAndThrowError } from '@/utils/errors';
@@ -45,11 +45,11 @@ export async function testGenerate(): Promise<void> {
       return inputService.getInputWords()
         .then(inputWords => {
           logger.debug('inputWords: ', inputWords);
-          return fetchWordInfos(inputWords);
+          return fetchWordEntries(inputWords);
         })
-        .then(wordInfos => {
-          logger.debug('wordInfos: ', wordInfos);
-          return extractWordForms(wordInfos);
+        .then(wordEntries => {
+          logger.debug('wordEntries: ', wordEntries);
+          return extractWordForms(wordEntries);
         })
         .then(wordForms => {
           logger.debug('wordForms: ', wordForms);
@@ -67,16 +67,16 @@ export async function testGenerate(): Promise<void> {
   }
 }
 
-async function fetchWordInfos(inputWords: string[]): Promise<WordInfo[]> {
-  const wordInfos = await fetchWordInfosService.perform(inputWords);
-  await fileManager.saveWordInfosToCSVFile(wordInfos);
+async function fetchWordEntries(inputWords: string[]): Promise<WordEntry[]> {
+  const wordEntries = await fetchWordEntriesService.perform(inputWords);
+  await fileManager.saveWordEntriesToCSVFile(wordEntries);
 
-  return wordInfos;
+  return wordEntries;
 }
 
-function extractWordForms(wordInfos: WordInfo[]): string[] {
-  return wordInfos.map(wordInfo =>
-    new WordFormsPresenter(wordInfo).toString()
+function extractWordForms(wordEntries: WordEntry[]): string[] {
+  return wordEntries.map(wordEntry =>
+    new WordFormsPresenter(wordEntry).toString()
   ).flat();
 }
 

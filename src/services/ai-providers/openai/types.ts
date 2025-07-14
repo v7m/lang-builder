@@ -1,4 +1,4 @@
-import type { WordInfosFunctionConfig } from './configs/wordInfosFunctionConfig';
+import type { WordEntriesFunctionConfig } from './configs/wordEntriesFunctionConfig';
 import type { DialogFunctionConfig } from './configs/dialogFunctionConfig';
 
 export interface ChatCompletionOptions {
@@ -7,7 +7,7 @@ export interface ChatCompletionOptions {
   userPrompt: string;
   max_tokens?: number;
   temperature?: number;
-  tools?: (WordInfosFunctionConfig | DialogFunctionConfig)[];
+  tools?: (WordEntriesFunctionConfig | DialogFunctionConfig)[];
   tool_choice?: string;
 }
 
