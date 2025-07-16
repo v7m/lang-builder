@@ -54,7 +54,13 @@ export interface MultiSpeakerConfig {
   };
 }
 
-export const multiSpeakerConfig = (femaleVoice: string, maleVoice: string): MultiSpeakerConfig => {
+export const multiSpeakerConfig = ({
+  femaleVoice,
+  maleVoice
+}: {
+  femaleVoice: string;
+  maleVoice: string;
+}): MultiSpeakerConfig => {
   return {
     responseModalities: ["AUDIO"],
     speechConfig: {

@@ -60,10 +60,14 @@ Return the result **only** as a valid JSON object with the following fields:
 - No explanation or non-JSON text in output
 
 ### Final Verification Steps:
-1. Count total lines (must be >= <%= minNumberOfLines %>)
-2. Check that EACH WORD (line in input) is used at least once in ANY form
-3. Verify speaker alternation
-4. Verify proper beginning and ending
+IMPORTANT: The minimum number of lines requirement (<%= minNumberOfLines %>) is a CRITICAL constraint. 
+Any result with fewer lines will be automatically rejected without further processing.
+
+1. Count total lines (must be >= <%= minNumberOfLines %>). 
+2. The result will be considered invalid if the number of lines is less than <%= minNumberOfLines %>.
+3. Check that EACH WORD (line in input) is used at least once in ANY form.
+4. Verify speaker alternation.
+5. Verify proper beginning and ending.
 
 Return a valid JSON object like this:
 {
