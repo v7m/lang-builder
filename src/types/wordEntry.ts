@@ -27,9 +27,11 @@ export type PartOfSpeech =
   | "adverb"
   | "pronoun"
   | "preposition"
+  | "particle"
   | "conjunction"
   | "interjection"
   | "numeral"
+  | "article"
   | "unknown";
 
 export type WordForms =
@@ -37,7 +39,7 @@ export type WordForms =
   | NounForms
   | AdjectiveForms
   | AdverbForms
-  | Record<string, string>;
+  | BaseForms;
 
 export type VerbForms = {
   infinitive: string;
@@ -58,8 +60,8 @@ export type AdjectiveForms = {
   superlative: string;
 };
 
-export type AdverbForms = {
-  positive: string;
-  comparative: string;
-  superlative: string;
+export type AdverbForms = AdjectiveForms | BaseForms;
+
+export type BaseForms = {
+  base: string;
 };

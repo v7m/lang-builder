@@ -7,6 +7,7 @@ import {
   Gender,
   Grammar,
   WordEntry,
+  BaseForms,
 } from '../types/wordEntry';
 import { Nullable } from '../types';
 
@@ -30,7 +31,7 @@ export class WordFormsPresenter {
       case 'adverb':
         return this.adverbFormsToString();
       default:
-        return this.defaultFormsToString();
+        return this.baseFormsToString();
     }
   }
 
@@ -60,18 +61,33 @@ export class WordFormsPresenter {
 
   private adjectiveFormsToString(): string {
     const forms = this.forms as AdjectiveForms;
-    return `${forms.positive}; ${forms.comparative || '-'}; ${forms.superlative || '-'}`;
+    let result = forms.positive;
+
+    if (forms.comparative) {
+      result += `; ${forms.comparative}`;
+    }
+
+    if (forms.superlative) {
+      result += `; ${forms.superlative}`;
+    }
+
+    return result;
   }
 
   private adverbFormsToString(): string {
     const forms = this.forms as AdverbForms;
-    return `${forms.positive}; ${forms.comparative || '-'}; ${forms.superlative || '-'}`;
+
+    if ('base' in forms) {
+      return this.baseFormsToString();
+    }
+
+    return this.adjectiveFormsToString();
   }
 
-  private defaultFormsToString(): string {
-    return Object.entries(this.forms)
-      .map(([key, value]) => `${key}: ${value}`)
-      .join('; ');
+  private baseFormsToString(): string {
+    const forms = this.forms as BaseForms;
+
+    return forms.base;
   }
 
   private getArticle(gender: Nullable<Gender>): string {

@@ -71,9 +71,9 @@ function log(level: LogLevel, ...args: unknown[]): void {
   const lastArg = args[args.length - 1];
   if (
     typeof lastArg === 'object' &&
-    lastArg !== null &&
-    !(lastArg instanceof Error) &&
-    'indent' in lastArg
+      lastArg !== null &&
+      !(lastArg instanceof Error) &&
+      'indent' in lastArg
   ) {
     indentLevel = (lastArg as LogIndentOptions).indent ?? 0;
     args.pop(); // remove options object
@@ -86,7 +86,7 @@ function log(level: LogLevel, ...args: unknown[]): void {
   const levelLabel = `${color}[${level.toUpperCase()}]${spaces}${RESET_COLOR}`;
   const label = `${emoji} ${levelLabel} ${timestamp}`;
   const indent = getIndent(indentLevel);
-  const prefix = `${indent}${label}`;
+  const prefix = `${label}${indent}`;
 
   switch (level) {
     case 'info':

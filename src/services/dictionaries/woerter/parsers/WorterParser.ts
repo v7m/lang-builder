@@ -9,6 +9,8 @@ import type {
   NounForms,
   VerbForms,
   AdjectiveForms,
+  AdverbForms,
+  BaseForms,
 } from "@/types/wordEntry";
 import { logger } from '@/services/logger';
 import { buildCssSelector } from '@/utils/buildCssSelector';
@@ -18,6 +20,27 @@ const TEXT_NODE = 3;
 const ELEMENT_NODE = 1;
 
 export class WorterParser {
+  private static readonly PARTS_OF_SPEECH: PartOfSpeech[] = [
+    'noun',
+    'verb',
+    'adjective',
+    'adverb',
+    'pronoun',
+    'preposition',
+    'particle',
+    'conjunction',
+    'interjection',
+    'numeral',
+    'article',
+    'unknown',
+  ];
+
+  private static readonly GENDER: Gender[] = [
+    'masculine',
+    'feminine',
+    'neuter',
+  ];
+
   private static readonly PARENT_SELECTOR = 'body > article > div:nth-child(1)';
   private static readonly EXAMPLES_SELECTOR = buildCssSelector(
     WorterParser.PARENT_SELECTOR,
@@ -97,7 +120,7 @@ export class WorterParser {
     return {
       word: parser.word,
       grammar: parser.grammar,
-      forms: parser.forms ?? {},
+      forms: parser.forms,
       translations: parser.translations,
       examples: parser.examples,
     };
@@ -129,8 +152,10 @@ export class WorterParser {
     let gender = null;
 
     // Parse part of speech
-    const partsOfSpeech: PartOfSpeech[] = ['noun', 'verb', 'adjective'];
-    const foundPart = tokens.find(token => partsOfSpeech.includes(token as PartOfSpeech));
+    const foundPart = tokens.find(token => {
+      return WorterParser.PARTS_OF_SPEECH.includes(token as PartOfSpeech);
+    });
+
     if (foundPart) {
       partOfSpeech = foundPart as PartOfSpeech;
     }
@@ -139,7 +164,7 @@ export class WorterParser {
     regular = tokens.includes('regular');
 
     // Parse gender from token
-    const genderToken = tokens.find(t => ['masculine', 'feminine', 'neuter'].includes(t || ''));
+    const genderToken = tokens.find(t => WorterParser.GENDER.includes(t as Gender));
     if (genderToken) {
       gender = genderToken as Gender;
     }
@@ -221,8 +246,9 @@ export class WorterParser {
 
   private parseForms(): Nullable<WordForms> {
     const container = this.document.querySelector(WorterParser.FORMS_SELECTOR) as HTMLElement;
+    const baseForms = { base: this.word } as BaseForms;
 
-    if (!container) return null;
+    if (!container) return baseForms;
 
     switch (this.grammar.partOfSpeech) {
       case "verb":
@@ -231,12 +257,16 @@ export class WorterParser {
         return this.parseNounForms(container);
       case "adjective":
         return this.parseAdjectiveForms(container);
+      case "adverb":
+        return this.parseAdverbForms(container);
       default:
-        return null;
+        return baseForms;
     }
   }
 
   private parseVerbForms(container: HTMLElement): Nullable<VerbForms> {
+    if (!container) return null;
+
     let rawText = '';
 
     for (const node of container.childNodes) {
@@ -329,6 +359,18 @@ export class WorterParser {
       comparative,
       superlative,
     };
+
+    return forms;
+  }
+
+  private parseAdverbForms(container: HTMLElement): Nullable<AdverbForms> {
+    if (!container) return { base: this.word } as BaseForms;
+
+    const forms = this.parseAdjectiveForms(container) as AdverbForms;
+
+    if (Object.keys(forms).length === 0) {
+      return { base: this.word } as BaseForms;
+    }
 
     return forms;
   }
