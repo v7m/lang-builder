@@ -8,18 +8,21 @@
     "generate": "tsx src/scripts/generate.ts",
     "main": "tsx src/scripts/generate.ts --main",
     "test": "tsx src/scripts/generate.ts --test",
-    "reset": "tsx src/scripts/reset-generation-registry.ts",
-    "reset-main": "tsx src/scripts/reset-generation-registry.ts --main",
-    "reset-test": "tsx src/scripts/reset-generation-registry.ts --test",
+    "reset": "tsx src/scripts/resetGenerationRegistry.ts",
+    "reset-main": "tsx src/scripts/resetGenerationRegistry.ts --main",
+    "reset-test": "tsx src/scripts/resetGenerationRegistry.ts --test",
     "reset-all": "npm run reset-main && npm run reset-test",
-    "dev": "tsx watch src/scripts/generate.ts"
+    "dev": "tsx watch src/scripts/generate.ts",
+    "test-mongo": "tsx src/scripts/testMongoConnection.ts"
   },
   "dependencies": {
     "@google/genai": "^0.6.0",
+    "@types/mongoose": "^5.11.97",
     "axios": "^1.10.0",
     "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
     "jsdom": "^26.1.0",
+    "mongoose": "^8.16.4",
     "node-fetch": "^3.3.2",
     "p-limit": "^6.2.0",
     "wav": "^1.0.0"

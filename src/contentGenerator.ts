@@ -50,14 +50,14 @@ export async function testGenerate(): Promise<void> {
         .then(wordEntries => {
           logger.debug('wordEntries: ', wordEntries);
           return extractWordForms(wordEntries);
-        // })
-        // .then(wordForms => {
-        //   logger.debug('wordForms: ', wordForms);
-        //   return generateText(wordForms, generationType);
-        // })
-        // .then(textChunks => {
-        //   logger.debug('textChunks: ', textChunks);
-        //   return generateSpeech(textChunks);
+        })
+        .then(wordForms => {
+          logger.debug('wordForms: ', wordForms);
+          return generateText(wordForms, generationType);
+        })
+        .then(textChunks => {
+          logger.debug('textChunks: ', textChunks);
+          return generateSpeech(textChunks);
         });
     }).then(() => {
       logger.success('🎉 🎉 🎉 TEST GENERATION COMPLETED 🎉 🎉 🎉');

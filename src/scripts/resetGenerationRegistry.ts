@@ -10,8 +10,8 @@ async function main() {
   } else {
     console.error('Error: Missing required argument\n');
     console.error('Usage:');
-    console.error('  npm run reset-generation-registry -- --main        Reset main generation registry\n');
-    console.error('  npm run reset-generation-registry -- --test        Reset test generation registry\n');
+    console.error('  npm run resetGenerationRegistry -- --main        Reset main generation registry\n');
+    console.error('  npm run resetGenerationRegistry -- --test        Reset test generation registry\n');
     process.exit(1);
   }
 }

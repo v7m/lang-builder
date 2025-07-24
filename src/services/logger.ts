@@ -69,12 +69,13 @@ function log(level: LogLevel, ...args: unknown[]): void {
   let indentLevel = 0;
 
   const lastArg = args[args.length - 1];
-  if (
+  const isLogIndentOption =
     typeof lastArg === 'object' &&
       lastArg !== null &&
       !(lastArg instanceof Error) &&
-      'indent' in lastArg
-  ) {
+      'indent' in lastArg;
+
+  if (isLogIndentOption) {
     indentLevel = (lastArg as LogIndentOptions).indent ?? 0;
     args.pop(); // remove options object
   }
