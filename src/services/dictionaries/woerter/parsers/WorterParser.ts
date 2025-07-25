@@ -207,7 +207,7 @@ export class WorterParser {
       Object.entries(translations).map(([lang, text]) => [
         lang,
         text
-          .replace(/[\u2026.]+$/, '')        // remove ellipses and dots
+          ?.replace(/[\u2026.]+$/, '')        // remove ellipses and dots
           .replace(/[,;]+$/, '')             // remove extra commas and semicolons at the end
           .trim()
       ])

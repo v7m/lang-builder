@@ -17,7 +17,7 @@ export type Grammar = {
 export type Gender = "masculine" | "feminine" | "neuter";
 
 export type Translations = {
-  ru: string;
+  ru: Nullable<string>;
 };
 
 export type PartOfSpeech =

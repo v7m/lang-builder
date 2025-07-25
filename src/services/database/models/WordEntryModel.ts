@@ -1,4 +1,4 @@
-import mongoose, { Schema } from 'mongoose';
+import { Schema, model as mongooseModel } from 'mongoose';
 import { Grammar, WordForms, Gender, PartOfSpeech, Translations } from '../../../types/wordEntry';
 import { createEnumFromType } from '@/utils/typeUtils';
 import { WordEntryDocument } from '../types';
@@ -19,11 +19,11 @@ const GrammarSchema = new Schema<Grammar>({
     type: Boolean,
     required: true
   },
-      gender: {
-      type: String,
-      enum: GENDER_VALUES,
-      required: false
-    }
+  gender: {
+    type: String,
+    enum: GENDER_VALUES,
+    required: false
+  }
 }, { _id: false });
 
 const WordFormsSchema = new Schema<WordForms>({
@@ -50,15 +50,15 @@ const WordFormsSchema = new Schema<WordForms>({
 const TranslationsSchema = new Schema<Translations>({
   ru: {
     type: String,
-    required: true
+    required: false,
+    default: ''
   }
 }, { _id: false });
 
 const WordEntrySchema = new Schema<WordEntryDocument>({
   word: {
     type: String,
-    required: true,
-    index: true
+    required: true
   },
   grammar: {
     type: GrammarSchema,
@@ -85,4 +85,15 @@ WordEntrySchema.index({ word: 1 });
 WordEntrySchema.index({ 'grammar.partOfSpeech': 1 });
 WordEntrySchema.index({ 'grammar.gender': 1 });
 
-export const WordEntryModel = mongoose.model<WordEntryDocument>('WordEntry', WordEntrySchema);
+// Create model with Next.js hot reload compatibility
+let WordEntryModel: ReturnType<typeof mongooseModel>;
+
+try {
+  // Try to get existing model first
+  WordEntryModel = mongooseModel('WordEntry');
+} catch {
+  // If model doesn't exist, create it
+  WordEntryModel = mongooseModel('WordEntry', WordEntrySchema);
+}
+
+export { WordEntryModel };
