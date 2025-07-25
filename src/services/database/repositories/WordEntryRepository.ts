@@ -36,6 +36,15 @@ export class WordEntryRepository {
     }
   }
 
+  async findById(id: string): Promise<WordEntryDocument | null> {
+    try {
+      return await WordEntryModel.findById(id);
+    } catch (error) {
+      logger.error('❌ Error finding word entry by ID:', error);
+      throw error;
+    }
+  }
+
   async findAll(): Promise<WordEntryDocument[]> {
     try {
       return await WordEntryModel.find().sort({ word: 1 });
@@ -92,40 +101,6 @@ export class WordEntryRepository {
       return result.deletedCount || 0;
     } catch (error) {
       logger.error('❌ Error deleting all word entries:', error);
-      throw error;
-    }
-  }
-
-  async getStats(): Promise<{
-    total: number;
-    byPartOfSpeech: Record<string, number>;
-  }> {
-    try {
-      const total = await WordEntryModel.countDocuments();
-      const byPartOfSpeech = await WordEntryModel.aggregate([
-        {
-          $group: {
-            _id: '$grammar.partOfSpeech',
-            count: { $sum: 1 }
-          }
-        },
-        {
-          $sort: { count: -1 }
-        }
-      ]);
-
-      const stats = {
-        total,
-        byPartOfSpeech: byPartOfSpeech.reduce((acc, item) => {
-          acc[item._id] = item.count;
-          return acc;
-        }, {} as Record<string, number>)
-      };
-
-      logger.info('📊 Database stats:', stats);
-      return stats;
-    } catch (error) {
-      logger.error('❌ Error getting database stats:', error);
       throw error;
     }
   }

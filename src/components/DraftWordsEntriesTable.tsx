@@ -1,33 +1,39 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Table, Space, Typography, Button, message, Modal } from 'antd';
-import { EditOutlined, DeleteOutlined, ReloadOutlined, UndoOutlined } from '@ant-design/icons';
+import { Table, Space, Typography, Button, message, Collapse, Modal } from 'antd';
+import { DeleteOutlined, ReloadOutlined, CheckOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { WordEntryDocument } from '@/services/database';
+import WordUploadForm from './WordUploadForm';
 import EditWordModal from './EditWordModal';
 import { createCommonColumns } from './shared/wordEntriesTableColumns';
 
 const { Text } = Typography;
 
-export default function WordsEntriesTable() {
+interface DraftWordsEntriesTableProps {
+  onApprove?: () => void;
+  onRefreshMainTable?: () => void;
+}
+
+export default function DraftWordsEntriesTable({ onApprove, onRefreshMainTable }: DraftWordsEntriesTableProps) {
   const [words, setWords] = useState<WordEntryDocument[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedExamples, setExpandedExamples] = useState<Set<string>>(new Set());
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 20,
   });
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<WordEntryDocument | null>(null);
+  const [expandedExamples, setExpandedExamples] = useState<Set<string>>(new Set());
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editTarget, setEditTarget] = useState<WordEntryDocument | null>(null);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<WordEntryDocument | null>(null);
   const [messageApi, contextHolder] = message.useMessage();
 
-  const fetchWordEntries = async () => {
+  const fetchDraftWordEntries = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/wordEntries');
+      const response = await fetch('/api/draftWordEntries');
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -38,10 +44,10 @@ export default function WordsEntriesTable() {
       if (result.success) {
         setWords(result.data);
       } else {
-        messageApi.error('Failed to fetch word entries');
+        messageApi.error('Failed to fetch draft word entries');
       }
     } catch (error) {
-      messageApi.error('Error fetching word entries');
+      messageApi.error('Error fetching draft word entries');
       console.error('Fetch error:', error);
     } finally {
       setLoading(false);
@@ -49,7 +55,7 @@ export default function WordsEntriesTable() {
   };
 
   useEffect(() => {
-    fetchWordEntries();
+    fetchDraftWordEntries();
   }, []);
 
   const handleTableChange = (paginationConfig: { current?: number; pageSize?: number }) => {
@@ -68,23 +74,22 @@ export default function WordsEntriesTable() {
   const handleDeleteConfirm = async () => {
     if (deleteTarget) {
       try {
-        const response = await fetch(`/api/wordEntries/${deleteTarget._id}`, {
+        const response = await fetch(`/api/draftWordEntries/${deleteTarget._id}`, {
           method: 'DELETE',
         });
-
+        
         if (response.ok) {
-          const result = await response.json();
-          messageApi.success(result.message || 'Word entry deleted successfully');
+          messageApi.success('Draft word entry deleted successfully');
           setDeleteModalVisible(false);
           setDeleteTarget(null);
-          fetchWordEntries(); // Refresh the data
+          fetchDraftWordEntries(); // Refresh the data
         } else {
           const errorData = await response.json();
-          messageApi.error(errorData.error || 'Failed to delete word entry');
+          messageApi.error(errorData.error || 'Failed to delete draft word entry');
         }
       } catch (error) {
-        messageApi.error('Error deleting word entry');
-        console.error('Error deleting word entry:', error);
+        messageApi.error('Error deleting draft word entry');
+        console.error('Error deleting draft word entry:', error);
       }
     }
   };
@@ -94,9 +99,9 @@ export default function WordsEntriesTable() {
     setDeleteTarget(null);
   };
 
-  const handleMoveToDraft = async (id: string) => {
+  const handleApprove = async (id: string) => {
     try {
-      const response = await fetch(`/api/wordEntries/${id}/moveToDraft`, {
+      const response = await fetch(`/api/draftWordEntries/${id}/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,16 +109,18 @@ export default function WordsEntriesTable() {
       });
 
       if (response.ok) {
-        const result = await response.json();
-        messageApi.success(result.message || 'Word moved to draft collection');
-        fetchWordEntries(); // Refresh the data
-      } else {
+          const result = await response.json();
+          messageApi.success(result.message || 'Word approved and moved to main collection');
+          fetchDraftWordEntries(); // Refresh the data
+          onApprove?.(); // Refresh main table
+          onRefreshMainTable?.(); // Refresh main table from parent
+        } else {
         const errorData = await response.json();
-        messageApi.error(errorData.error || 'Failed to move word to draft');
+        messageApi.error(errorData.error || 'Failed to approve word entry');
       }
     } catch (error) {
-      messageApi.error('Error moving word to draft');
-      console.error('Error moving word to draft:', error);
+      messageApi.error('Error approving word entry');
+      console.error('Error approving word entry:', error);
     }
   };
 
@@ -130,7 +137,7 @@ export default function WordsEntriesTable() {
   const handleEditSave = async (updatedRecord: Partial<WordEntryDocument>) => {
     if (editTarget) {
       try {
-        const response = await fetch(`/api/wordEntries/${editTarget._id}`, {
+        const response = await fetch(`/api/draftWordEntries/${editTarget._id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -140,22 +147,20 @@ export default function WordsEntriesTable() {
 
         if (response.ok) {
           const result = await response.json();
-          messageApi.success(result.message || 'Word updated successfully');
+          messageApi.success(result.message || 'Draft word updated successfully');
           setEditModalVisible(false);
           setEditTarget(null);
-          fetchWordEntries(); // Refresh the data
+          fetchDraftWordEntries(); // Refresh the data
         } else {
           const errorData = await response.json();
-          messageApi.error(errorData.error || 'Failed to update word');
+          messageApi.error(errorData.error || 'Failed to update draft word');
         }
       } catch (error) {
-        messageApi.error('Error updating word');
+        messageApi.error('Error updating draft word');
         console.error('Update error:', error);
       }
     }
   };
-
-
 
   const commonColumns = createCommonColumns(expandedExamples, setExpandedExamples);
 
@@ -164,7 +169,7 @@ export default function WordsEntriesTable() {
     {
       title: 'Actions',
       key: 'actions',
-      width: 160,
+      width: 120,
       align: 'center',
       render: (_, record) => (
         <Space size="small">
@@ -177,11 +182,11 @@ export default function WordsEntriesTable() {
           />
           <Button
             type="text"
-            icon={<UndoOutlined />}
+            icon={<CheckOutlined />}
             size="small"
-            onClick={() => handleMoveToDraft(String(record._id))}
-            title="Move to draft"
-            style={{ color: '#faad14' }}
+            onClick={() => handleApprove(String(record._id))}
+            title="Approve and move to main collection"
+            style={{ color: '#52c41a' }}
           />
           <Button
             type="text"
@@ -209,7 +214,7 @@ export default function WordsEntriesTable() {
         okButtonProps={{ danger: true }}
       >
         <p>
-          Are you sure you want to delete the word "{deleteTarget?.word}"?
+          Are you sure you want to delete the draft word "{deleteTarget?.word}"?
         </p>
         <p>This action cannot be undone.</p>
       </Modal>
@@ -222,15 +227,32 @@ export default function WordsEntriesTable() {
       />
 
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+        <Collapse 
+          size="small" 
+          defaultActiveKey={['1']}
+          items={[
+            {
+              key: '1',
+              label: (
+                <Space>
+                  <PlusOutlined />
+                  <Text>Add New Words to Drafts</Text>
+                </Space>
+              ),
+              children: <WordUploadForm onUploadSuccess={fetchDraftWordEntries} />,
+            },
+          ]}
+        />
+
         <Space>
           <Button 
             icon={<ReloadOutlined />} 
-            onClick={fetchWordEntries}
+            onClick={fetchDraftWordEntries}
             loading={loading}
           >
-            Refresh
+            Refresh Drafts
           </Button>
-          <Text type="secondary">Approved: {words.length} words</Text>
+          <Text type="secondary">Drafts: {words.length} words</Text>
         </Space>
 
         <Table

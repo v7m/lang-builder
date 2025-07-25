@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mongoConnection, wordEntryService } from '@/services/database';
+import { mongoConnection, draftWordEntryService } from '@/services/database';
 import { logger } from '@/services/logger';
 import { WordEntry } from '@/types/wordEntry';
 import { fetchWordEntriesService } from '@/services/content/wordEntries/fetchWordEntriesService';
@@ -15,7 +15,6 @@ export async function POST(request: NextRequest) {
     await connectToMongoDb();
     
     const body = await request.json();
-    logger.info(`body: ${JSON.stringify(body)}`);
     const { inputWordsText } = body;
     
     const validationResult = validateWordsInput(inputWordsText);
@@ -72,7 +71,7 @@ function return500Error(error: string) {
 function returnSuccess(processedWordsCount: number) {
   return NextResponse.json({
     success: true,
-    message: `Received ${processedWordsCount} words for processing`,
+    message: `Received ${processedWordsCount} words for processing in draft`,
     data: { processedWordsCount }
   });
 }
@@ -99,17 +98,17 @@ async function fetchWordEntries(inputWords: string[]): Promise<WordEntry[]> {
 
 async function saveWordEntriesToDatabase(wordEntries: WordEntry[]): Promise<WordEntry[]> {
   try {
-    logger.info('Saving word entries to database...');
+    logger.info('Saving word entries to draft database...');
 
-    const savedWordEntries = await wordEntryService.createMany(wordEntries);
-    logger.success(`✅ Saved ${savedWordEntries.length} word entries to database`, { indent: 1 });
+    const savedWordEntries = await draftWordEntryService.createMany(wordEntries);
+    logger.success(`✅ Saved ${savedWordEntries.length} word entries to draft database`, { indent: 1 });
 
-    const allEntries = await wordEntryService.findAll();
-    logger.info(`All entries count: ${allEntries.length}`, { indent: 1 });
+    const allEntries = await draftWordEntryService.findAll();
+    logger.info(`All draft entries count: ${allEntries.length}`, { indent: 1 });
 
     return savedWordEntries;
   } catch (error) {
-    logger.error('❌ Error saving word entries to database:', error);
+    logger.error('❌ Error saving word entries to draft database:', error);
     throw error;
   }
 }

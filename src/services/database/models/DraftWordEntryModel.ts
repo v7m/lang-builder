@@ -2,7 +2,7 @@ import { Schema, model as mongooseModel } from 'mongoose';
 import { WordEntryDocument } from '../types';
 import { GrammarSchema, WordFormsSchema, TranslationsSchema } from './sharedWordEntries';
 
-const WordEntrySchema = new Schema<WordEntryDocument>({
+const DraftWordEntrySchema = new Schema<WordEntryDocument>({
   word: {
     type: String,
     required: true
@@ -24,24 +24,24 @@ const WordEntrySchema = new Schema<WordEntryDocument>({
   }]
 }, {
   timestamps: true,
-  collection: 'de_word_entries'
+  collection: 'de_draft_word_entries'
 });
 
 // Indexes for optimization
-WordEntrySchema.index({ word: 1 });
-WordEntrySchema.index({ 'grammar.partOfSpeech': 1 });
-WordEntrySchema.index({ 'grammar.gender': 1 });
+DraftWordEntrySchema.index({ word: 1 });
+DraftWordEntrySchema.index({ 'grammar.partOfSpeech': 1 });
+DraftWordEntrySchema.index({ 'grammar.gender': 1 });
 
 // Create model with Next.js hot reload compatibility
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-let WordEntryModel: any;
+let DraftWordEntryModel: any;
 
 try {
-  // Try to get existing model first
-  WordEntryModel = mongooseModel('WordEntry');
+  // Try to get existing draft model first
+  DraftWordEntryModel = mongooseModel('DraftWordEntry');
 } catch {
   // If model doesn't exist, create it
-  WordEntryModel = mongooseModel('WordEntry', WordEntrySchema);
+  DraftWordEntryModel = mongooseModel('DraftWordEntry', DraftWordEntrySchema);
 }
 
-export { WordEntryModel };
+export { DraftWordEntryModel };

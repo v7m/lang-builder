@@ -21,7 +21,7 @@ export default function WordUploadForm({ onUploadSuccess }: WordUploadFormProps)
 
     setUploading(true);
     try {
-      const response = await fetch('/api/wordEntries/upload', {
+      const response = await fetch('/api/draftWordEntries/upload', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

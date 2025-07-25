@@ -1,13 +1,13 @@
-import { WordEntryRepository } from '../repositories/WordEntryRepository';
+import { DraftWordEntryRepository } from '../repositories/DraftWordEntryRepository';
 import { WordEntryDocument } from '../types';
 import { WordEntry } from '../../../types/wordEntry';
 import { logger } from '../../logger';
 
-export class WordEntryService {
-  private repository: WordEntryRepository;
+export class DraftWordEntryService {
+  private repository: DraftWordEntryRepository;
 
   constructor() {
-    this.repository = new WordEntryRepository();
+    this.repository = new DraftWordEntryRepository();
   }
 
   private validateAndNormalize(entry: WordEntry): WordEntry {
@@ -28,7 +28,7 @@ export class WordEntryService {
       const validatedEntry = this.validateAndNormalize(wordEntry);
       return await this.repository.create(validatedEntry);
     } catch (error) {
-      logger.error('❌ Error creating word entry:', error);
+      logger.error('❌ Error creating draft word entry:', error);
       throw error;
     }
   }
@@ -38,7 +38,7 @@ export class WordEntryService {
       const validatedEntries = this.validateAndNormalizeMany(wordEntries);
       return await this.repository.createMany(validatedEntries);
     } catch (error) {
-      logger.error('❌ Error creating multiple word entries:', error);
+      logger.error('❌ Error creating multiple draft word entries:', error);
       throw error;
     }
   }
@@ -47,16 +47,7 @@ export class WordEntryService {
     try {
       return await this.repository.findByWord(word);
     } catch (error) {
-      logger.error('❌ Error finding word entry:', error);
-      throw error;
-    }
-  }
-
-  async findById(id: string): Promise<WordEntryDocument | null> {
-    try {
-      return await this.repository.findById(id);
-    } catch (error) {
-      logger.error('❌ Error finding word entry by ID:', error);
+      logger.error('❌ Error finding draft word entry:', error);
       throw error;
     }
   }
@@ -65,7 +56,7 @@ export class WordEntryService {
     try {
       return await this.repository.findAll();
     } catch (error) {
-      logger.error('❌ Error finding all word entries:', error);
+      logger.error('❌ Error finding all draft word entries:', error);
       throw error;
     }
   }
@@ -74,7 +65,7 @@ export class WordEntryService {
     try {
       return await this.repository.findByPartOfSpeech(partOfSpeech);
     } catch (error) {
-      logger.error('❌ Error finding word entries by part of speech:', error);
+      logger.error('❌ Error finding draft word entries by part of speech:', error);
       throw error;
     }
   }
@@ -84,7 +75,7 @@ export class WordEntryService {
       const validatedUpdates = this.validateAndNormalize(updates as WordEntry);
       return await this.repository.update(id, validatedUpdates);
     } catch (error) {
-      logger.error('❌ Error updating word entry:', error);
+      logger.error('❌ Error updating draft word entry:', error);
       throw error;
     }
   }
@@ -93,7 +84,7 @@ export class WordEntryService {
     try {
       return await this.repository.delete(id);
     } catch (error) {
-      logger.error('❌ Error deleting word entry:', error);
+      logger.error('❌ Error deleting draft word entry:', error);
       throw error;
     }
   }
@@ -102,7 +93,7 @@ export class WordEntryService {
     try {
       return await this.repository.deleteAll();
     } catch (error) {
-      logger.error('❌ Error deleting all word entries:', error);
+      logger.error('❌ Error deleting all draft word entries:', error);
       throw error;
     }
   }
@@ -125,10 +116,46 @@ export class WordEntryService {
 
       return { total, byPartOfSpeech };
     } catch (error) {
-      logger.error('❌ Error getting database stats:', error);
+      logger.error('❌ Error getting draft word entry stats:', error);
+      throw error;
+    }
+  }
+
+  async promoteToMain(id: string): Promise<WordEntryDocument | null> {
+    try {
+      console.log('PromoteToMain called with ID:', id);
+      
+      const draftEntry = await this.repository.findById(id);
+      console.log('Found draft entry:', draftEntry);
+      
+      if (!draftEntry) {
+        console.log('No draft entry found for ID:', id);
+        return null;
+      }
+
+      const { wordEntryService } = await import('./WordEntryService');
+
+      const mainEntry = await wordEntryService.create({
+        word: draftEntry.word,
+        grammar: draftEntry.grammar,
+        forms: draftEntry.forms,
+        translations: draftEntry.translations,
+        examples: draftEntry.examples
+      });
+      console.log('Created main entry:', mainEntry);
+
+      const deleted = await this.delete(id);
+      console.log('Deleted from draft:', deleted);
+
+      logger.success(`✅ Word "${draftEntry.word}" promoted from draft to main collection`);
+      
+      return mainEntry;
+    } catch (error) {
+      console.error('Error in promoteToMain:', error);
+      logger.error('❌ Error promoting draft word entry to main:', error);
       throw error;
     }
   }
 }
 
-export const wordEntryService = new WordEntryService();
+export const draftWordEntryService = new DraftWordEntryService();
